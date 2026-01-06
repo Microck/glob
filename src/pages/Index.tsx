@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import NoiseOverlay from '@/components/NoiseOverlay';
 import GridBackground from '@/components/GridBackground';
 import DropZone from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
 import Controls from '@/components/Controls';
 import ProgressBar from '@/components/ProgressBar';
-import DownloadPanel from '@/components/DownloadPanel';
+import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
@@ -143,7 +143,8 @@ const Index = () => {
         )}
         
         {appState === 'complete' && file && (
-          <DownloadPanel
+          <ComparisonViewer
+            file={file}
             originalSize={file.size}
             compressedSize={compressedSize}
             onDownload={handleDownload}

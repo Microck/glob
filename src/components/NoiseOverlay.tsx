@@ -3,8 +3,8 @@ const NoiseOverlay = () => {
     <div 
       className="fixed inset-0 pointer-events-none z-50"
       style={{ 
-        opacity: 0.15,
-        mixBlendMode: 'overlay'
+        opacity: 0.25,
+        mixBlendMode: 'soft-light'
       }}
     >
       <svg 
@@ -15,8 +15,8 @@ const NoiseOverlay = () => {
           <filter id="noise">
             <feTurbulence 
               type="fractalNoise" 
-              baseFrequency="0.65" 
-              numOctaves="3" 
+              baseFrequency="0.7" 
+              numOctaves="4" 
               stitchTiles="stitch"
             />
           </filter>
