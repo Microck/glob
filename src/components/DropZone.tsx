@@ -48,7 +48,7 @@ const DropZone = ({ onFileSelect, isLoading }: DropZoneProps) => {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={`
-        drop-zone w-full aspect-square max-w-xl cursor-pointer
+        drop-zone w-full aspect-[16/9] cursor-pointer
         flex flex-col items-center justify-center gap-8 p-8
         ${isDragOver ? 'drop-zone-active' : ''}
         ${isLoading ? 'opacity-50 pointer-events-none' : ''}

@@ -96,9 +96,9 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-24 relative z-10">
         {appState === 'idle' && (
-          <>
+          <div className="w-full max-w-4xl flex flex-col items-center">
             <DropZone onFileSelect={handleFileSelect} />
-            <div className="mt-8 w-full max-w-xl">
+            <div className="mt-0 w-full">
               <Controls
                 decimation={decimation}
                 dracoLevel={dracoLevel}
@@ -109,13 +109,13 @@ const Index = () => {
                 hasFile={false}
               />
             </div>
-          </>
+          </div>
         )}
         
         {appState === 'preview' && file && (
-          <>
+          <div className="w-full max-w-4xl flex flex-col items-center">
             <GLBViewer file={file} onReset={handleReset} />
-            <div className="mt-8 w-full max-w-xl">
+            <div className="mt-0 w-full">
               <Controls
                 decimation={decimation}
                 dracoLevel={dracoLevel}
@@ -126,11 +126,11 @@ const Index = () => {
                 hasFile={true}
               />
             </div>
-          </>
+          </div>
         )}
         
         {appState === 'processing' && (
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-4xl">
             <div className="mb-8 text-center">
               <ScrambleText 
                 text="COMPRESSING" 

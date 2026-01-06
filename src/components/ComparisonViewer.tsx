@@ -13,7 +13,6 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
   const clonedScene = scene.clone(true);
   
   useEffect(() => {
-    // Apply wireframe if needed
     clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         if (wireframe) {
@@ -26,12 +25,10 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
       }
     });
 
-    // Compute bounding box and center the model
     const box = new THREE.Box3().setFromObject(clonedScene);
     const center = box.getCenter(new THREE.Vector3());
     clonedScene.position.sub(center);
     
-    // Scale to fit
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     const scale = 2 / maxDim;
@@ -60,6 +57,11 @@ const ComparisonViewer = ({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Refs for synchronized camera
+  const leftControlsRef = useRef<any>(null);
+  const rightControlsRef = useRef<any>(null);
+  const isSyncing = useRef(false);
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
@@ -70,7 +72,8 @@ const ComparisonViewer = ({
     };
   }, [file]);
 
-  const handleMouseDown = useCallback(() => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsDragging(true);
   }, []);
 
@@ -83,7 +86,7 @@ const ComparisonViewer = ({
     
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
-    const percentage = Math.max(10, Math.min(90, (x / rect.width) * 100));
+    const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
     setSliderPosition(percentage);
   }, [isDragging]);
 
@@ -91,6 +94,27 @@ const ComparisonViewer = ({
     const handleGlobalMouseUp = () => setIsDragging(false);
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
+
+  // Sync cameras
+  const syncCameras = useCallback((source: 'left' | 'right') => {
+    if (isSyncing.current) return;
+    isSyncing.current = true;
+
+    const sourceControls = source === 'left' ? leftControlsRef.current : rightControlsRef.current;
+    const targetControls = source === 'left' ? rightControlsRef.current : leftControlsRef.current;
+
+    if (sourceControls && targetControls) {
+      const sourceCamera = sourceControls.object;
+      const targetCamera = targetControls.object;
+      
+      targetCamera.position.copy(sourceCamera.position);
+      targetCamera.quaternion.copy(sourceCamera.quaternion);
+      targetControls.target.copy(sourceControls.target);
+      targetControls.update();
+    }
+
+    isSyncing.current = false;
   }, []);
 
   const reduction = ((1 - compressedSize / originalSize) * 100).toFixed(1);
@@ -102,7 +126,7 @@ const ComparisonViewer = ({
       {/* Comparison View */}
       <div 
         ref={containerRef}
-        className="relative w-full aspect-[16/9] border-3 border-muted overflow-hidden cursor-ew-resize select-none"
+        className="relative w-full aspect-[16/9] border-3 border-muted overflow-hidden select-none"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
@@ -127,13 +151,17 @@ const ComparisonViewer = ({
               <Center>
                 <Model url={objectUrl} wireframe={false} />
               </Center>
-              <OrbitControls enableDamping={false} />
+              <OrbitControls 
+                ref={leftControlsRef}
+                enableDamping={false} 
+                onChange={() => syncCameras('left')}
+              />
               <Environment preset="warehouse" />
             </Suspense>
           </Canvas>
         </div>
 
-        {/* Compressed (Right Side - Wireframe to show optimization) */}
+        {/* Compressed (Right Side - Wireframe) */}
         <div 
           className="absolute inset-0"
           style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}
@@ -154,7 +182,11 @@ const ComparisonViewer = ({
               <Center>
                 <Model url={objectUrl} wireframe={true} />
               </Center>
-              <OrbitControls enableDamping={false} />
+              <OrbitControls 
+                ref={rightControlsRef}
+                enableDamping={false}
+                onChange={() => syncCameras('right')}
+              />
             </Suspense>
           </Canvas>
         </div>
@@ -165,9 +197,8 @@ const ComparisonViewer = ({
           style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
           onMouseDown={handleMouseDown}
         >
-          {/* Handle Grip */}
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-active flex items-center justify-center"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-active flex items-center justify-center cursor-ew-resize"
             onMouseDown={handleMouseDown}
           >
             <div className="flex gap-0.5">
@@ -178,7 +209,7 @@ const ComparisonViewer = ({
           </div>
         </div>
 
-        {/* Slider Labels */}
+        {/* Labels */}
         <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 py-2 pointer-events-none">
           <span className="font-ui text-xs text-muted bg-surface/80 px-2 py-1">◀ ORIGINAL</span>
           <span className="font-ui text-xs text-active bg-surface/80 px-2 py-1">OPTIMIZED ▶</span>
