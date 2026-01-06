@@ -2,104 +2,159 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ACID BRUTALIST DESIGN SYSTEM */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Core Palette - Strict Hex Mapping */
+    --background: 276 8% 23%;
+    --surface: 273 12% 20%;
+    --text-active: 351 96% 71%;
+    --text-muted: 340 26% 45%;
+    --text-reading: 15 29% 87%;
+    
+    /* Semantic mappings */
+    --foreground: var(--text-reading);
+    --card: var(--surface);
+    --card-foreground: var(--text-reading);
+    --popover: var(--surface);
+    --popover-foreground: var(--text-reading);
+    --primary: var(--text-active);
+    --primary-foreground: var(--surface);
+    --secondary: var(--surface);
+    --secondary-foreground: var(--text-reading);
+    --muted: var(--surface);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--text-active);
+    --accent-foreground: var(--surface);
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: var(--text-muted);
+    --input: var(--text-muted);
+    --ring: var(--text-active);
+    --radius: 0rem;
   }
 
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
+    border-radius: 0 !important;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Chakra Petch', monospace;
+  }
+
+  /* Force zero radius everywhere */
+  *, *::before, *::after {
+    border-radius: 0 !important;
+  }
+}
+
+@layer components {
+  /* Typography Classes */
+  .font-display {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+  }
+
+  .font-ui {
+    font-family: 'Chakra Petch', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  /* Industrial Input Styling */
+  .input-raw {
+    @apply bg-surface border-b-2 border-muted px-4 py-3 text-reading font-ui;
+    @apply focus:border-active focus:outline-none;
+    transition: none;
+  }
+
+  .input-raw:hover,
+  .input-raw:focus {
+    @apply border-active text-active;
+  }
+
+  /* Button Variants */
+  .btn-brutal {
+    @apply bg-surface border-3 border-muted px-6 py-4 font-ui text-reading uppercase;
+    @apply hover:border-active hover:text-active;
+    transition: none;
+  }
+
+  .btn-download {
+    @apply bg-active text-surface px-8 py-4 font-ui uppercase;
+    @apply hover:bg-reading hover:text-surface;
+    transition: none;
+  }
+
+  /* Drop Zone */
+  .drop-zone {
+    @apply border-3 border-muted bg-surface/50;
+    @apply hover:border-active;
+    transition: none;
+  }
+
+  .drop-zone-active {
+    @apply border-active;
+  }
+
+  /* Grid Background */
+  .grid-bg {
+    background-image: 
+      linear-gradient(to right, hsl(var(--text-muted) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--text-muted) / 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Progress Bar Raw */
+  .progress-raw {
+    @apply font-ui text-active;
+  }
+}
+
+@layer utilities {
+  /* Color utilities */
+  .text-active {
+    color: hsl(var(--text-active));
+  }
+
+  .text-muted-custom {
+    color: hsl(var(--text-muted));
+  }
+
+  .text-reading {
+    color: hsl(var(--text-reading));
+  }
+
+  .bg-surface {
+    background-color: hsl(var(--surface));
+  }
+
+  .bg-active {
+    background-color: hsl(var(--text-active));
+  }
+
+  .border-muted {
+    border-color: hsl(var(--text-muted));
+  }
+
+  .border-active {
+    border-color: hsl(var(--text-active));
+  }
+
+  .border-3 {
+    border-width: 3px;
+  }
+
+  /* Negative tracking for headers */
+  .tracking-brutal {
+    letter-spacing: -0.05em;
+  }
+
+  /* Leading none */
+  .leading-brutal {
+    line-height: 0.9;
   }
 }
