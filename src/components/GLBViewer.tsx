@@ -46,7 +46,7 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
   if (!objectUrl) return null;
 
   return (
-    <div className="w-full aspect-square max-w-xl border-3 border-muted relative">
+    <div className="w-full aspect-[16/9] max-w-4xl border-3 border-muted relative">
       {/* File info header */}
       <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center px-4 py-2 bg-surface/80 border-b-3 border-muted">
         <span className="font-ui text-sm text-reading truncate max-w-[200px]">
