@@ -13,7 +13,7 @@ import { processGlb } from "../services/gltfService";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const API_ROOT = path.resolve(__dirname, "..", "..");
+const API_ROOT = path.resolve(__dirname, "..", "..", "..");
 const TMP_DIR = path.join(API_ROOT, "tmp");
 
 const UPLOAD_DIR = path.join(TMP_DIR, "uploads");
