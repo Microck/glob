@@ -13,15 +13,35 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
   const clonedScene = scene.clone(true);
   
   useEffect(() => {
+    // Ensure all materials are properly configured for visibility
     clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        if (wireframe) {
-          child.material = new THREE.MeshBasicMaterial({ 
-            color: 0xFC6E83, 
-            wireframe: true,
-            wireframeLinewidth: 1
-          });
+        // Ensure material is visible and properly configured
+        if (child.material) {
+          if (wireframe) {
+            child.material = new THREE.MeshBasicMaterial({ 
+              color: 0xFC6E83, 
+              wireframe: true,
+              wireframeLinewidth: 1
+            });
+          } else {
+            // Ensure normal materials are visible
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                mat.transparent = false;
+                mat.opacity = 1;
+                mat.side = THREE.FrontSide;
+              });
+            } else {
+              child.material.transparent = false;
+              child.material.opacity = 1;
+              child.material.side = THREE.FrontSide;
+            }
+          }
         }
+        // Ensure mesh is visible
+        child.visible = true;
+        child.renderOrder = 0;
       }
     });
 
@@ -59,8 +79,8 @@ const ComparisonViewer = ({
   const containerRef = useRef<HTMLDivElement>(null);
   
   // Refs for synchronized camera
-  const leftControlsRef = useRef<any>(null);
-  const rightControlsRef = useRef<any>(null);
+  const leftControlsRef = useRef<import('@react-three/drei').OrbitControls>(null);
+  const rightControlsRef = useRef<import('@react-three/drei').OrbitControls>(null);
   const isSyncing = useRef(false);
 
   useEffect(() => {
@@ -146,8 +166,9 @@ const ComparisonViewer = ({
             style={{ background: 'hsl(273, 12%, 20%)' }}
           >
             <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <ambientLight intensity={0.7} />
+              <directionalLight position={[10, 10, 5]} intensity={1.2} />
+              <pointLight position={[-10, -10, -10]} intensity={0.5} />
               <Center>
                 <Model url={objectUrl} wireframe={false} />
               </Center>
@@ -177,8 +198,9 @@ const ComparisonViewer = ({
             style={{ background: 'hsl(276, 8%, 18%)' }}
           >
             <Suspense fallback={null}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={1} />
+              <ambientLight intensity={0.7} />
+              <directionalLight position={[10, 10, 5]} intensity={1.2} />
+              <pointLight position={[-10, -10, -10]} intensity={0.5} />
               <Center>
                 <Model url={objectUrl} wireframe={true} />
               </Center>
