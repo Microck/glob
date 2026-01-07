@@ -1,14 +1,57 @@
-import { Suspense, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Suspense, useEffect, useState, useRef } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
 import * as THREE from 'three';
 
 interface ModelProps {
   url: string;
+  onLoaded?: () => void;
 }
 
-const Model = ({ url }: ModelProps) => {
+const CameraFitter = ({ scene }: { scene: THREE.Object3D }) => {
+  const { camera, controls } = useThree();
+  
+  useEffect(() => {
+    // Compute bounding box
+    const box = new THREE.Box3().setFromObject(scene);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    
+    // Calculate distance needed to fit object in view
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    const distance = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
+    
+    // Add some padding and position camera
+    const offset = 1.5; // 50% padding
+    const cameraDistance = distance * offset;
+    
+    // Position camera at an angle for better view
+    const angle = Math.PI / 4; // 45 degrees
+    camera.position.set(
+      center.x + cameraDistance * Math.cos(angle),
+      center.y + cameraDistance * Math.sin(angle),
+      center.z + cameraDistance * Math.cos(angle)
+    );
+    
+    // Update camera near and far planes for better precision
+    camera.near = Math.max(0.1, distance / 100);
+    camera.far = distance * 10;
+    camera.updateProjectionMatrix();
+    
+    // Update controls target to center of object
+    if (controls) {
+      controls.target.copy(center);
+      controls.update();
+    }
+  }, [scene, camera, controls]);
+  
+  return null;
+};
+
+const Model = ({ url, onLoaded }: ModelProps) => {
   const { scene } = useGLTF(url);
+  const [isModelReady, setIsModelReady] = useState(false);
   
   useEffect(() => {
     // Compute bounding box and center the model
@@ -21,9 +64,24 @@ const Model = ({ url }: ModelProps) => {
     const maxDim = Math.max(size.x, size.y, size.z);
     const scale = 2 / maxDim;
     scene.scale.setScalar(scale);
-  }, [scene]);
+    
+    // Mark as ready when model is processed
+    setIsModelReady(true);
+    if (onLoaded) {
+      onLoaded();
+    }
+  }, [scene, onLoaded]);
 
-  return <primitive object={scene} />;
+  if (!isModelReady) {
+    return null;
+  }
+
+  return (
+    <>
+      <primitive object={scene} />
+      <CameraFitter scene={scene} />
+    </>
+  );
 };
 
 interface GLBViewerProps {
@@ -31,10 +89,21 @@ interface GLBViewerProps {
   onReset: () => void;
 }
 
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-full bg-surface">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-active mx-auto mb-4"></div>
+      <p className="font-ui text-reading text-sm">LOADING MODEL...</p>
+    </div>
+  </div>
+);
+
 const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     const url = URL.createObjectURL(file);
     setObjectUrl(url);
     
@@ -42,6 +111,10 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
       URL.revokeObjectURL(url);
     };
   }, [file]);
+
+  const handleModelLoaded = () => {
+    setIsLoading(false);
+  };
 
   if (!objectUrl) return null;
 
@@ -70,7 +143,7 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <Center>
-            <Model url={objectUrl} />
+            <Model url={objectUrl} onLoaded={handleModelLoaded} />
           </Center>
           <OrbitControls 
             enableDamping={false}
@@ -80,6 +153,16 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
           <Environment preset="warehouse" />
         </Suspense>
       </Canvas>
+      
+      {/* Loading overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-surface/80 z-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-active mx-auto mb-2"></div>
+            <p className="font-ui text-reading text-sm">LOADING...</p>
+          </div>
+        </div>
+      )}
       
       {/* File size */}
       <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-surface/80 border-t-3 border-muted">
