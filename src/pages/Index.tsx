@@ -7,9 +7,10 @@ import Controls from '@/components/Controls';
 import ProgressBar from '@/components/ProgressBar';
 import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
+import FileLoading from '@/components/FileLoading';
 import { optimizeFile, downloadFile } from '@/lib/api';
 
-type AppState = 'idle' | 'preview' | 'processing' | 'complete';
+type AppState = 'idle' | 'loading' | 'preview' | 'processing' | 'complete';
 
 const PROCESSING_MESSAGES = [
   'LOADING_GEOMETRY...',
@@ -34,7 +35,12 @@ const Index = () => {
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
-    setAppState('preview');
+    setAppState('loading');
+    
+    // Simulate file processing/loading time
+    setTimeout(() => {
+      setAppState('preview');
+    }, 1500);
   }, []);
 
   const handleReset = useCallback(() => {
@@ -131,6 +137,10 @@ const Index = () => {
               />
             </div>
           </div>
+        )}
+        
+        {appState === 'loading' && file && (
+          <FileLoading fileName={file.name} />
         )}
         
         {appState === 'preview' && file && (
