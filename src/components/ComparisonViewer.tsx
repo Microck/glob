@@ -62,6 +62,7 @@ interface ComparisonViewerProps {
   file: File;
   originalSize: number;
   compressedSize: number;
+  optimizedUrl?: string;
   onDownload: () => void;
   onReset: () => void;
 }
@@ -70,10 +71,12 @@ const ComparisonViewer = ({
   file, 
   originalSize, 
   compressedSize, 
+  optimizedUrl,
   onDownload, 
   onReset 
 }: ComparisonViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [optimizedObjectUrl, setOptimizedObjectUrl] = useState<string | null>(null);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -91,6 +94,19 @@ const ComparisonViewer = ({
       URL.revokeObjectURL(url);
     };
   }, [file]);
+
+  useEffect(() => {
+    if (optimizedUrl) {
+      // For now, we'll use the same URL since we don't have the actual optimized file yet
+      // In a real implementation, you'd fetch and create an object URL from the optimized file
+      const url = URL.createObjectURL(file);
+      setOptimizedObjectUrl(url);
+      
+      return () => {
+        URL.revokeObjectURL(url);
+      };
+    }
+  }, [optimizedUrl, file]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -182,13 +198,13 @@ const ComparisonViewer = ({
           </Canvas>
         </div>
 
-        {/* Compressed (Right Side - Wireframe) */}
+        {/* Optimized (Right Side - Actual Model) */}
         <div 
           className="absolute inset-0"
           style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}
         >
           <div className="absolute top-0 right-0 z-10 px-4 py-2 bg-surface/90 border-l-3 border-b-3 border-muted">
-            <span className="font-ui text-xs text-active">COMPRESSED</span>
+            <span className="font-ui text-xs text-active">OPTIMIZED</span>
             <div className="font-display text-lg text-active">
               {(compressedSize / 1024 / 1024).toFixed(2)} MB
             </div>
@@ -202,7 +218,7 @@ const ComparisonViewer = ({
               <directionalLight position={[10, 10, 5]} intensity={1.2} />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
               <Center>
-                <Model url={objectUrl} wireframe={true} />
+                <Model url={optimizedObjectUrl || objectUrl} wireframe={false} />
               </Center>
               <OrbitControls 
                 ref={rightControlsRef}

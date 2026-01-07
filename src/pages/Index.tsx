@@ -121,7 +121,7 @@ const Index = () => {
       {/* Header */}
       <header className="fixed top-0 left-0 z-40 p-6">
         <div className="flex items-center gap-3">
-          <img src="/glob.svg" alt="glob" className="w-8 h-8" />
+          <img src="/glob.svg" alt="glob" className="w-[90px] h-[70px]" />
           <h1 className="font-display text-xl text-reading tracking-brutal">
             glob
           </h1>
@@ -186,6 +186,7 @@ const Index = () => {
             file={file}
             originalSize={file.size}
             compressedSize={compressedSize}
+            optimizedUrl={downloadUrl}
             onDownload={handleDownload}
             onReset={handleReset}
           />
