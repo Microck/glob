@@ -49,7 +49,7 @@ const upload = multer({
     return cb(null, true);
   },
   limits: {
-    fileSize: 100 * 1024 * 1024,
+    fileSize: Infinity, // No file size limit
   },
 });
 
@@ -134,7 +134,7 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
 optimizeRouter.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(413).json({ status: "error", message: "File too large (max 100MB)." });
+      return res.status(413).json({ status: "error", message: "File too large." });
     }
 
     return res.status(400).json({ status: "error", message: err.message });
