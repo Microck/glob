@@ -54,6 +54,29 @@ const Model = ({ url, onLoaded }: ModelProps) => {
   const [isModelReady, setIsModelReady] = useState(false);
   
   useEffect(() => {
+    // Ensure all materials are properly configured for visibility
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        // Ensure material is visible and properly configured
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material.forEach((mat) => {
+              mat.transparent = false;
+              mat.opacity = 1;
+              mat.side = THREE.FrontSide;
+            });
+          } else {
+            child.material.transparent = false;
+            child.material.opacity = 1;
+            child.material.side = THREE.FrontSide;
+          }
+        }
+        // Ensure mesh is visible
+        child.visible = true;
+        child.renderOrder = 0;
+      }
+    });
+
     // Compute bounding box and center the model
     const box = new THREE.Box3().setFromObject(scene);
     const center = box.getCenter(new THREE.Vector3());
@@ -140,8 +163,9 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
         style={{ background: 'hsl(273, 12%, 20%)' }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
+          <ambientLight intensity={0.7} />
+          <directionalLight position={[10, 10, 5]} intensity={1.2} />
+          <pointLight position={[-10, -10, -10]} intensity={0.5} />
           <Center>
             <Model url={objectUrl} onLoaded={handleModelLoaded} />
           </Center>

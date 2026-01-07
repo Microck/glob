@@ -62,7 +62,13 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
 
   let settings: OptimizeSettings;
   try {
-    settings = SettingsSchema.parse(JSON.parse(String(req.body.settings ?? "{}")));
+    // Validate that req.body.settings exists and is a string
+    const settingsString = req.body.settings;
+    if (!settingsString || typeof settingsString !== 'string') {
+      settings = { decimateRatio: 0.8, dracoLevel: 5 }; // Default settings
+    } else {
+      settings = SettingsSchema.parse(JSON.parse(settingsString));
+    }
   } catch (err) {
     return res.status(400).json({ status: "error", message: "Invalid settings JSON" });
   }
