@@ -112,6 +112,26 @@
   .progress-raw {
     @apply font-ui text-active;
   }
+
+  /* Bouncing Glob Animation */
+  .animate-bouncing-glob {
+    animation: bounce-glob 2s infinite ease-in-out;
+  }
+
+  @keyframes bounce-glob {
+    0%, 100% {
+      transform: translateX(0deg) rotate(0deg);
+    }
+    25% {
+      transform: translateX(-2px) rotate(-1deg);
+    }
+    50% {
+      transform: translateX(1px) rotate(0.5deg);
+    }
+    75% {
+      transform: translateX(-1px) rotate(-0.5deg);
+    }
+  }
 }
 
 @layer utilities {

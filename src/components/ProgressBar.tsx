@@ -20,12 +20,28 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
 
   return (
     <div className="w-full border-3 border-muted bg-surface p-6">
-      <div className="font-ui text-sm md:text-base text-active mb-4 whitespace-nowrap overflow-hidden">
-        {bar} {displayProgress}%
-      </div>
-      <div className="font-ui text-sm text-muted">
-        {message}
-      </div>
+      {message === 'COMPLETE' && progress === 100 ? (
+        <div className="flex flex-col items-center justify-center text-center">
+          <div className="mb-4">
+            <img src="/finished.svg" alt="Finished glob" className="w-20 h-20" />
+          </div>
+          <div className="font-ui text-sm md:text-base text-active mb-4 whitespace-nowrap overflow-hidden">
+            {bar} {displayProgress}%
+          </div>
+          <div className="font-ui text-sm text-muted">
+            {message}
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="font-ui text-sm md:text-base text-active mb-4 whitespace-nowrap overflow-hidden">
+            {bar} {displayProgress}%
+          </div>
+          <div className="font-ui text-sm text-muted">
+            {message}
+          </div>
+        </>
+      )}
     </div>
   );
 };
