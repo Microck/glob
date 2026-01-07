@@ -7,6 +7,7 @@ import Controls from '@/components/Controls';
 import ProgressBar from '@/components/ProgressBar';
 import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
+import { optimizeFile, downloadFile } from '@/lib/api';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
@@ -27,6 +28,9 @@ const Index = () => {
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState('');
   const [compressedSize, setCompressedSize] = useState(0);
+  const [downloadUrl, setDownloadUrl] = useState('');
+  const [facesBefore, setFacesBefore] = useState(0);
+  const [facesAfter, setFacesAfter] = useState(0);
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
@@ -40,45 +44,62 @@ const Index = () => {
     setCompressedSize(0);
   }, []);
 
-  const handleCompress = useCallback(() => {
+  const handleCompress = useCallback(async () => {
     if (!file) return;
     
     setAppState('processing');
     setProgress(0);
     
-    // Simulate processing with console-style messages
-    let currentStep = 0;
-    const totalSteps = PROCESSING_MESSAGES.length;
-    
-    const interval = setInterval(() => {
-      if (currentStep < totalSteps) {
-        setCurrentMessage(PROCESSING_MESSAGES[currentStep]);
-        setProgress(Math.floor(((currentStep + 1) / totalSteps) * 100));
-        currentStep++;
-      } else {
-        clearInterval(interval);
-        // Simulate compression result (random 30-70% reduction)
-        const reduction = 0.3 + Math.random() * 0.4;
-        setCompressedSize(file.size * (1 - reduction));
+    try {
+      // Show processing messages while optimizing
+      let currentStep = 0;
+      const totalSteps = PROCESSING_MESSAGES.length;
+      
+      const messageInterval = setInterval(() => {
+        if (currentStep < totalSteps) {
+          setCurrentMessage(PROCESSING_MESSAGES[currentStep]);
+          setProgress(Math.floor(((currentStep + 1) / totalSteps) * 100));
+          currentStep++;
+        }
+      }, 800);
+      
+      // Call the actual backend API
+      const settings = {
+        decimateRatio: decimation / 100, // Convert percentage to ratio (0-1)
+        dracoLevel: dracoLevel,
+        textureQuality: 1024 // Default texture quality
+      };
+      
+      const result = await optimizeFile(file, settings);
+      
+      clearInterval(messageInterval);
+      
+      if (result.status === 'success') {
+        setCompressedSize(result.optimizedSize);
+        setDownloadUrl(result.downloadUrl);
+        setFacesBefore(result.stats.facesBefore);
+        setFacesAfter(result.stats.facesAfter);
+        setProgress(100);
+        setCurrentMessage('COMPLETE');
         setAppState('complete');
+      } else {
+        throw new Error(result.message || 'Optimization failed');
       }
-    }, 800);
-  }, [file]);
+    } catch (error) {
+      console.error('Compression error:', error);
+      setAppState('preview');
+    }
+  }, [file, decimation, dracoLevel]);
 
-  const handleDownload = useCallback(() => {
-    if (!file) return;
+  const handleDownload = useCallback(async () => {
+    if (!file || !downloadUrl) return;
     
-    // Create download (in real implementation, this would be the compressed file)
-    const blob = new Blob([file], { type: 'model/gltf-binary' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = file.name.replace(/\.(glb|gltf)$/i, '_compressed.glb');
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [file]);
+    try {
+      await downloadFile(downloadUrl, file.name.replace(/\.(glb|gltf)$/i, '_compressed.glb'));
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  }, [file, downloadUrl]);
 
   return (
     <div className="min-h-screen flex flex-col relative">
