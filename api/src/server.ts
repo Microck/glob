@@ -18,7 +18,7 @@ async function ensureTmpDirs(): Promise<void> {
 }
 
 function getAllowedOrigins(): string[] {
-  const defaults = ["http://localhost:5173", "http://localhost:3000"];
+  const defaults = ["http://localhost:8080", "http://localhost:5173", "http://localhost:3000"];
 
   const envOrigins = (process.env.CORS_ORIGINS ?? "")
     .split(",")

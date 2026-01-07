@@ -12,6 +12,8 @@ dist
 dist-ssr
 api/dist
 api/tmp
+tmp
+.serena
 *.local
 
 # Editor directories and files
