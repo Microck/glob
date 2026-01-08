@@ -205,7 +205,7 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = '
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={`
-        drop-zone w-full aspect-[16/9] cursor-pointer relative
+        drop-zone w-full aspect-[16/9] cursor-pointer relative z-10
         flex flex-col items-center justify-center gap-8 p-8
         ${isDragOver ? 'drop-zone-active' : ''}
         ${isLoading ? 'pointer-events-none' : ''}
