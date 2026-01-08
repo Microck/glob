@@ -6,52 +6,45 @@ gsap.registerPlugin(Draggable);
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
-// Glitch text component for brutalist debug aesthetic
-const GlitchText = ({ text, className = '' }: { text: string; className?: string }) => {
-  const textRef = useRef<HTMLSpanElement>(null);
-  const chars = '!@#$%^&*()_+-=[]{}|;:,.<>?/~`0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const TypewriterText = ({ text, className = '' }: { text: string; className?: string }) => {
+  const [displayText, setDisplayText] = useState('');
   
   useEffect(() => {
-    if (!textRef.current) return;
+    let currentText = '';
+    let index = 0;
     
-    const el = textRef.current;
-    const originalText = text;
-    let iteration = 0;
-    
-    const scramble = () => {
-      el.innerText = originalText
-        .split('')
-        .map((char, idx) => {
-          if (idx < iteration) return originalText[idx];
-          return chars[Math.floor(Math.random() * chars.length)];
-        })
-        .join('');
-      
-      if (iteration < originalText.length) {
-        iteration += 1/3;
-        requestAnimationFrame(scramble);
+    const interval = setInterval(() => {
+      if (index < text.length) {
+        currentText += text[index];
+        setDisplayText(currentText);
+        index++;
+      } else {
+        clearInterval(interval);
       }
-    };
+    }, 30);
     
-    scramble();
+    return () => clearInterval(interval);
   }, [text]);
   
-  return <span ref={textRef} className={className}>{text}</span>;
+  return (
+    <span className={className}>
+      {displayText}
+      <span className="animate-pulse inline-block w-[0.5em] h-[1em] bg-current align-text-bottom ml-1 opacity-50" />
+    </span>
+  );
 };
 
-// Flickering label for section headers
 const FlickerLabel = ({ text, className = '' }: { text: string; className?: string }) => {
   const labelRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (!labelRef.current) return;
     
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 3 });
-    tl.to(labelRef.current, { opacity: 0.3, duration: 0.05 })
-      .to(labelRef.current, { opacity: 1, duration: 0.05 })
-      .to(labelRef.current, { opacity: 0.5, duration: 0.03 })
-      .to(labelRef.current, { opacity: 1, duration: 0.05 })
-      .to(labelRef.current, { opacity: 0.7, duration: 0.02 })
+    const tl = gsap.timeline({ repeat: -1, repeatDelay: 5 });
+    
+    tl.to(labelRef.current, { opacity: 0.7, duration: 0.1 })
+      .to(labelRef.current, { opacity: 1, duration: 0.1 })
+      .to(labelRef.current, { opacity: 0.8, duration: 0.05 })
       .to(labelRef.current, { opacity: 1, duration: 0.1 });
     
     return () => { tl.kill(); };
@@ -94,6 +87,82 @@ const generateSelector = (el: HTMLElement): string => {
   return tag;
 };
 
+const TransformHandles = ({ element, onUpdate }: { element: ElementInfo, onUpdate: () => void }) => {
+  if (!element.el) return null;
+  
+  const rect = element.el.getBoundingClientRect();
+  const handleStyle = "absolute w-3 h-3 bg-active border border-surface z-[100] cursor-pointer hover:scale-125 transition-transform";
+  
+  const onDragStart = (e: React.MouseEvent, type: 'se' | 'e' | 's') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = rect.width;
+    const startHeight = rect.height;
+    
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      
+      let newWidth = startWidth;
+      let newHeight = startHeight;
+      
+      if (type === 'e' || type === 'se') newWidth = startWidth + dx;
+      if (type === 's' || type === 'se') newHeight = startHeight + dy;
+      
+      if (type === 'se') {
+        element.el.style.width = `${Math.max(10, newWidth)}px`;
+        element.el.style.height = `${Math.max(10, newHeight)}px`;
+      } else if (type === 'e') {
+        element.el.style.width = `${Math.max(10, newWidth)}px`;
+      } else if (type === 's') {
+        element.el.style.height = `${Math.max(10, newHeight)}px`;
+      }
+      
+      onUpdate();
+    };
+    
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  };
+
+  return (
+    <>
+      <div 
+        className="fixed border-2 border-active pointer-events-none z-[90]"
+        style={{
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        }}
+      />
+      <div 
+        className={handleStyle}
+        style={{ left: rect.right - 6, top: rect.bottom - 6, cursor: 'nwse-resize' }}
+        onMouseDown={(e) => onDragStart(e, 'se')}
+      />
+      <div 
+        className={handleStyle}
+        style={{ left: rect.right - 6, top: rect.top + rect.height/2 - 6, cursor: 'ew-resize' }}
+        onMouseDown={(e) => onDragStart(e, 'e')}
+      />
+      <div 
+        className={handleStyle}
+        style={{ left: rect.left + rect.width/2 - 6, top: rect.bottom - 6, cursor: 'ns-resize' }}
+        onMouseDown={(e) => onDragStart(e, 's')}
+      />
+    </>
+  );
+};
+
 const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPickMode, setIsPickMode] = useState(false);
@@ -112,6 +181,24 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
       );
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!selectedElement) return;
+    
+    const update = () => {
+      setSelectedElement(prev => prev ? { ...prev } : null);
+    };
+    
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    const interval = setInterval(update, 100);
+    
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+      clearInterval(interval);
+    };
+  }, [selectedElement?.id]);
 
   const updateElementInfo = useCallback((id: string, el: HTMLElement) => {
     const rect = el.getBoundingClientRect();
@@ -146,8 +233,14 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
   }, []);
 
   const makeElementDraggable = useCallback((el: HTMLElement, id: string) => {
-    el.style.position = 'relative';
+    const style = window.getComputedStyle(el);
+    if (style.position === 'static') {
+      el.style.position = 'relative';
+    }
     el.dataset.debugId = id;
+
+    // @ts-ignore - gsap draggable types
+    if (Draggable.get(el)) return;
 
     Draggable.create(el, {
       type: 'x,y',
@@ -293,7 +386,7 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
         className="fixed bottom-4 right-4 z-50 font-ui text-xs bg-surface border-2 border-muted text-muted hover:text-active hover:border-active px-3 py-2"
         style={{ transition: 'none' }}
       >
-        <GlitchText text="DEBUG" className="" />
+        <TypewriterText text="DEBUG" />
       </button>
     );
   }
@@ -304,18 +397,25 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
         <div 
           className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] bg-surface border-3 border-active px-4 py-2 pointer-events-none"
         >
-          <GlitchText text="PICK MODE: HOVER TO HIGHLIGHT" className="font-ui text-sm text-active" />
+          <TypewriterText text="PICK MODE: HOVER TO HIGHLIGHT" className="font-ui text-sm text-active" />
           <div className="font-ui text-xs text-muted mt-1">Click to select • ESC to cancel</div>
         </div>
+      )}
+      
+      {selectedElement && !isPickMode && (
+        <TransformHandles 
+          element={selectedElement} 
+          onUpdate={() => updateElementInfo(selectedElement.id, selectedElement.el)} 
+        />
       )}
       
       <div
         ref={panelRef}
         data-debug-panel
-        className="fixed top-4 right-4 z-50 w-80 bg-surface border-3 border-muted max-h-[90vh] overflow-y-auto"
+        className="fixed top-4 right-4 z-50 w-80 bg-surface border-3 border-muted max-h-[90vh] overflow-y-auto shadow-2xl"
       >
         <div className="flex justify-between items-center px-3 py-2 border-b-3 border-muted">
-          <GlitchText text="DEBUG_MENU" className="font-ui text-sm text-active" />
+          <TypewriterText text="DEBUG_MENU" className="font-ui text-sm text-active" />
           <button
             onClick={() => setIsOpen(false)}
             className="font-ui text-xs text-muted hover:text-active"
