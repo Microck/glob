@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronDown } from 'lucide-react';
+import gsap from 'gsap';
 
 interface ControlsProps {
   decimation: number;
@@ -21,26 +22,64 @@ const Controls = ({
   hasFile
 }: ControlsProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const advancedPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.fromTo(containerRef.current,
+        { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.4, delay: 0.2, ease: 'power2.out' }
+      );
+    }
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    if (isAdvancedOpen) {
+      if (advancedPanelRef.current) {
+        gsap.to(advancedPanelRef.current, {
+          opacity: 0,
+          height: 0,
+          duration: 0.25,
+          ease: 'power2.in',
+          onComplete: () => {
+            setIsAdvancedOpen(false);
+            setShouldRender(false);
+          }
+        });
+      }
+    } else {
+      setShouldRender(true);
+      setIsAdvancedOpen(true);
+    }
+  }, [isAdvancedOpen]);
+
+  useEffect(() => {
+    if (advancedPanelRef.current && isAdvancedOpen && shouldRender) {
+      gsap.fromTo(advancedPanelRef.current,
+        { opacity: 0, height: 0 },
+        { opacity: 1, height: 'auto', duration: 0.3, ease: 'power2.out' }
+      );
+    }
+  }, [isAdvancedOpen, shouldRender]);
 
   return (
-    <div className="w-full flex flex-col gap-0">
-      {/* Advanced Settings Toggle */}
+    <div ref={containerRef} className="w-full flex flex-col gap-0">
       <button
-        onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
+        onClick={handleToggle}
         className="w-full flex items-center justify-between px-4 py-3 border-3 border-t-0 border-muted bg-surface font-ui text-sm text-muted hover:text-active hover:border-active"
         style={{ transition: 'none' }}
       >
         <span>ADVANCED_SETTINGS</span>
         <ChevronDown 
-          className={`w-4 h-4 transform ${isAdvancedOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transform ${isAdvancedOpen || shouldRender ? 'rotate-180' : ''}`}
           style={{ transition: 'none' }}
         />
       </button>
 
-      {/* Advanced Settings Panel */}
-      {isAdvancedOpen && (
-        <div className="flex border-3 border-t-0 border-muted">
-          {/* Decimation */}
+      {shouldRender && (
+        <div ref={advancedPanelRef} className="flex border-3 border-t-0 border-muted overflow-hidden" style={{ height: 0, opacity: 0 }}>
           <div className="flex-1 border-r-3 border-muted bg-surface">
             <label className="block font-ui text-xs text-muted px-4 pt-3">
               DECIMATION_%
@@ -59,7 +98,6 @@ const Controls = ({
             </div>
           </div>
           
-          {/* Draco Level */}
           <div className="flex-1 bg-surface">
             <label className="block font-ui text-xs text-muted px-4 pt-3">
               DRACO_LEVEL
@@ -80,7 +118,6 @@ const Controls = ({
         </div>
       )}
       
-      {/* Compress Button */}
       <button
         onClick={onCompress}
         disabled={!hasFile || isProcessing}
