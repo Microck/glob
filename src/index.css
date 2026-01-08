@@ -132,6 +132,19 @@
       transform: translateX(-1px) rotate(-0.5deg);
     }
   }
+
+  @keyframes pattern-drift {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: 100px 100px;
+    }
+  }
+
+  .animate-pattern-drift {
+    animation: pattern-drift 30s linear infinite;
+  }
 }
 
 @layer utilities {
