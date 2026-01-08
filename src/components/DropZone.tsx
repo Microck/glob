@@ -2,13 +2,23 @@ import { useRef, useState, useEffect, DragEvent, ChangeEvent } from 'react';
 import { Upload } from 'lucide-react';
 import gsap from 'gsap';
 
+export type AnimationType = 
+  | 'glitch-slide' 
+  | 'elastic-pop' 
+  | 'flash-bang' 
+  | 'cinema-scope' 
+  | 'curtain' 
+  | 'blur-snap' 
+  | 'squeeze';
+
 interface DropZoneProps {
   onFileSelect: (file: File) => void;
   isLoading?: boolean;
   loadProgress?: number;
+  animationType?: AnimationType;
 }
 
-const DropZone = ({ onFileSelect, isLoading, loadProgress = 0 }: DropZoneProps) => {
+const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = 'glitch-slide' }: DropZoneProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -16,12 +26,56 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0 }: DropZoneProps) 
 
   useEffect(() => {
     if (containerRef.current) {
-      gsap.fromTo(containerRef.current,
-        { x: -20, opacity: 0, skewX: 20 },
-        { x: 0, opacity: 1, skewX: 0, duration: 0.4, ease: 'back.out(1.7)' }
-      );
+      const el = containerRef.current;
+      
+      gsap.set(el, { clearProps: 'all' });
+      
+      switch (animationType) {
+        case 'glitch-slide':
+          gsap.fromTo(el,
+            { x: -20, opacity: 0, skewX: 20 },
+            { x: 0, opacity: 1, skewX: 0, duration: 0.4, ease: 'back.out(1.7)' }
+          );
+          break;
+        case 'elastic-pop':
+          gsap.fromTo(el,
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.7, ease: 'elastic.out(1, 0.5)' }
+          );
+          break;
+        case 'flash-bang':
+          gsap.fromTo(el,
+            { opacity: 0, filter: 'invert(1) brightness(2)' },
+            { opacity: 1, filter: 'invert(0) brightness(1)', duration: 0.1, delay: 0.1 }
+          );
+          break;
+        case 'cinema-scope':
+          gsap.fromTo(el,
+            { clipPath: 'inset(50% 0 50% 0)' },
+            { clipPath: 'inset(0% 0 0% 0)', duration: 0.8, ease: 'expo.out' }
+          );
+          break;
+        case 'curtain':
+          gsap.fromTo(el,
+            { clipPath: 'inset(0 0 100% 0)' },
+            { clipPath: 'inset(0 0 0% 0)', duration: 0.8, ease: 'circ.out' }
+          );
+          break;
+        case 'blur-snap':
+          gsap.fromTo(el,
+            { filter: 'blur(20px)', opacity: 0, scale: 1.1 },
+            { filter: 'blur(0px)', opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }
+          );
+          break;
+        case 'squeeze':
+          gsap.fromTo(el,
+            { scaleX: 1.5, scaleY: 0.1, opacity: 0 },
+            { scaleX: 1, scaleY: 1, opacity: 1, duration: 0.6, ease: 'elastic.out(1, 0.3)' }
+          );
+          break;
+      }
     }
-  }, []);
+  }, [animationType]);
 
   useEffect(() => {
     if (progressBarRef.current && isLoading) {
