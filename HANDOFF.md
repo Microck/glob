@@ -1,32 +1,15 @@
-# Handoff: Extended Animation Library
+# Handoff: Final Animation Polish
 
 ## Completed Work
-- **Animation Library**: Expanded `DropZone` animations to **20 presets**:
-  - `GLITCH SLIDE` (Default)
-  - `ELASTIC POP`
-  - `FLASH BANG`
-  - `CINEMA SCOPE`
-  - `CURTAIN`
-  - `BLUR SNAP`
-  - `SQUEEZE`
-  - `SCANLINE` (New)
-  - `PIXELATE` (New)
-  - `GLITCH SHAKE` (New)
-  - `HYDRAULIC` (New)
-  - `ROTATE SNAP` (New)
-  - `PERSPECTIVE TILT` (New)
-  - `STOMP` (New)
-  - `SLIDE UP/DOWN` (New)
-  - `ZOOM IN` (New)
-  - `FLIP X/Y` (New)
-  - `JITTER` (New)
-- **Selector**: Updated Debug Menu to support all new options.
-- **Replay**: Verified replay functionality works with new options.
+- **Animation Selection**: Hardcoded `DropZone` animation to `HYDRAULIC` (Scale Y 0->1).
+- **Staggered Entrance**: Delayed `Controls` panel animation (0.7s) to slide in after the hydraulic entrance completes.
+- **Cleanup**: Removed the animation selector and replay controls from the Debug Menu (kept the internal animation library in code for future use).
+- **Refinement**: Ensured all entrance animations are brutalist (no simple fades).
 
 ## Current State
 - **Branch**: `main` (merging latest).
 - **Build**: verified passing.
 
 ## Next Steps
-- Finalize the preferred animation and hardcode it if desired (or keep selector).
-- Proceed with `todo.md` items (faces count, wireframe).
+- Proceed with `todo.md` features.
+- Further refine "Hydraulic" feel if needed (maybe add a bounce at the end).
