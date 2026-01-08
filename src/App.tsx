@@ -28,25 +28,29 @@ const App = () => (
       variables: {
         colorPrimary: "#FC6E83",
         colorText: "#E7D9D5",
-        colorBackground: "#1A161E",
+        colorBackground: "#2D2833",
         colorInputBackground: "#1A161E",
         colorInputText: "#E7D9D5",
         borderRadius: "0",
         fontFamily: "Chakra Petch",
       },
       elements: {
-        card: "bg-surface border-3 border-muted shadow-brutal",
-        headerTitle: "font-display uppercase tracking-tight",
-        headerSubtitle: "font-ui uppercase opacity-60",
-        socialButtonsBlockButton: "rounded-none border-2 border-muted hover:border-active transition-none",
-        formButtonPrimary: "rounded-none bg-active hover:bg-reading transition-none uppercase font-bold",
+        card: "bg-surface border-3 border-muted shadow-brutal mx-auto",
+        headerTitle: "font-display uppercase tracking-tight text-reading",
+        headerSubtitle: "font-ui uppercase opacity-60 text-reading",
+        socialButtonsBlockButton: "rounded-none border-2 border-muted hover:border-active transition-none bg-surface",
+        socialButtonsBlockButtonText: "font-ui uppercase tracking-widest text-reading",
+        formButtonPrimary: "rounded-none bg-active hover:bg-reading transition-none uppercase font-bold text-surface",
         footerActionLink: "text-active hover:underline",
         identityPreviewText: "text-reading",
         identityPreviewEditButtonIcon: "text-active",
-        formFieldInput: "rounded-none border-2 border-muted focus:border-active transition-none bg-background",
-        userButtonPopoverCard: "bg-surface border-3 border-muted rounded-none",
-        userButtonPopoverActionButtonText: "font-ui uppercase tracking-widest",
-        userButtonPopoverFooter: "hidden"
+        formFieldInput: "rounded-none border-2 border-muted focus:border-active transition-none bg-background text-reading font-mono",
+        formFieldLabel: "font-ui uppercase text-muted tracking-widest text-[10px]",
+        userButtonPopoverCard: "bg-surface border-3 border-muted rounded-none shadow-brutal",
+        userButtonPopoverActionButtonText: "font-ui uppercase tracking-widest text-reading",
+        userButtonPopoverFooter: "hidden",
+        dividerRow: "hidden",
+        dividerText: "hidden"
       }
     }}
   >
