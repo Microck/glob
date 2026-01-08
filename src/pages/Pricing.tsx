@@ -3,13 +3,13 @@ import { Check } from "lucide-react";
 import PageLayout from '@/components/PageLayout';
 
 const Pricing = () => {
-  const pawPattern = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 24 24' fill='%23E7D9D5' fill-opacity='0.05'%3E%3Cpath d='M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-4.5-1c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm9 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-4.5 6c-2.5 0-4.5 2-4.5 4.5s2 4.5 4.5 4.5 4.5-2 4.5-4.5-2-4.5-4.5-4.5z'/%3E%3C/svg%3E")`;
+  const pawPattern = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%23E7D9D5' fill-opacity='0.03'%3E%3Cpath d='M12 14c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm-5-4c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-7-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm4 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")`;
 
   return (
     <PageLayout isCentered={true}>
       <div className="flex flex-col items-center w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl relative z-10">
-          <div className="bg-surface border-3 border-muted p-8 flex flex-col h-full shadow-brutal overflow-hidden">
+          <div className="bg-surface border-3 border-muted p-8 flex flex-col h-full shadow-brutal overflow-hidden relative">
             <div className="flex justify-between items-start mb-6 relative z-10">
               <h2 className="font-display text-2xl text-reading uppercase tracking-wider">Free</h2>
               <div className="font-mono text-xl text-muted">$0</div>
@@ -34,17 +34,17 @@ const Pricing = () => {
             className="border-3 border-active p-8 flex flex-col h-full relative shadow-brutal overflow-hidden"
             style={{ 
               background: `
-                radial-gradient(circle at top right, rgba(252, 110, 131, 0.1) 0%, transparent 50%),
-                linear-gradient(135deg, rgba(252, 110, 131, 0.05) 0%, transparent 100%),
-                #2D2833
+                radial-gradient(circle at 90% 10%, rgba(252, 110, 131, 0.08) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(231, 217, 213, 0.02) 0%, transparent 100%),
+                #332D3B
               `
             }}
           >
             <div 
-              className="absolute inset-0 z-0 animate-pattern-drift pointer-events-none"
+              className="absolute inset-0 z-0 animate-pattern-drift pointer-events-none opacity-40"
               style={{ 
                 backgroundImage: pawPattern,
-                backgroundSize: '80px 80px'
+                backgroundSize: '120px 120px'
               }}
             />
 
@@ -53,7 +53,7 @@ const Pricing = () => {
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-15.6px, -56.4px)',
+                  transform: 'translate(-15.6px, -51.4px)',
                   width: '105.3px',
                   height: '59.4px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 

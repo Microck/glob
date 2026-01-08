@@ -28,8 +28,8 @@ const App = () => (
       variables: {
         colorPrimary: "#FC6E83",
         colorText: "#E7D9D5",
-        colorBackground: "#2D2833",
-        colorInputBackground: "#1A161E",
+        colorBackground: "#332D3B",
+        colorInputBackground: "#3B363F",
         colorInputText: "#E7D9D5",
         borderRadius: "0",
         fontFamily: "Chakra Petch",
