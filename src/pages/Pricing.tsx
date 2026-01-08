@@ -32,12 +32,12 @@ const Pricing = () => {
           </div>
 
           <div className="bg-surface border-3 border-active p-8 flex flex-col h-full relative">
-            <div className="absolute top-0 right-0">
+            <div className="absolute top-0 right-0 z-[-1]">
               <img 
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-15.6px, -61.4px)',
+                  transform: 'translate(-15.6px, -58.1px)',
                   width: '105.3px',
                   height: '59.4px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
