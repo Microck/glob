@@ -25,8 +25,8 @@ const CameraController = ({ scene, controlsRef, resetTrigger }: CameraController
   
   const fitCameraToScene = useCallback(() => {
     const box = new THREE.Box3().setFromObject(scene);
-    const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
+    const center = new THREE.Vector3(0, 0, 0);
     
     const maxDim = Math.max(size.x, size.y, size.z);
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
@@ -37,9 +37,9 @@ const CameraController = ({ scene, controlsRef, resetTrigger }: CameraController
     
     const angle = Math.PI / 4;
     const newPosition = new THREE.Vector3(
-      center.x + cameraDistance * Math.cos(angle),
-      center.y + cameraDistance * Math.sin(angle),
-      center.z + cameraDistance * Math.cos(angle)
+      cameraDistance * Math.cos(angle),
+      cameraDistance * Math.sin(angle),
+      cameraDistance * Math.cos(angle)
     );
     
     (camera as THREE.PerspectiveCamera).near = Math.max(0.1, distance / 100);
