@@ -14,10 +14,13 @@ const Pricing = () => {
   const [patternColor, setPatternColor] = useState("#E7D9D5");
   const [glowColor, setGlowColor] = useState("#FC6E83");
   const [animDuration, setAnimDuration] = useState(30);
+  const [patternRotation, setPatternRotation] = useState(0);
+  const [patternDriftX, setPatternDriftX] = useState(-100);
+  const [patternDriftY, setPatternDriftY] = useState(-100);
 
-  const getPawPattern = (color: string, opacity: number, size: number) => {
+  const getPawPattern = (color: string, opacity: number, size: number, rotation: number) => {
     const encodedColor = encodeURIComponent(color);
-    return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 -1 26 26'%3E%3Cpath d='${pawPath}' fill='${encodedColor}' fill-opacity='${opacity}'/%3E%3C/svg%3E")`;
+    return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 -1 26 26'%3E%3Cpath d='${pawPath}' fill='${encodedColor}' fill-opacity='${opacity}' transform='rotate(${rotation}, 13, 12)'/%3E%3C/svg%3E")`;
   };
 
   return (
@@ -56,12 +59,14 @@ const Pricing = () => {
             }}
           >
             <div 
-              className="absolute inset-0 z-0 animate-pattern-drift-reverse pointer-events-none"
+              className="absolute inset-0 z-0 animate-pattern-drift pointer-events-none"
               style={{ 
-                backgroundImage: getPawPattern(patternColor, 1, patternSize),
+                backgroundImage: getPawPattern(patternColor, 1, patternSize, patternRotation),
                 backgroundSize: `${patternSpacing}px ${patternSpacing}px`,
                 opacity: patternOpacity,
-                animationDuration: `${animDuration}s`
+                ['--pattern-drift-x' as any]: `${patternDriftX}px`,
+                ['--pattern-drift-y' as any]: `${patternDriftY}px`,
+                ['--pattern-drift-speed' as any]: `${animDuration}s`
               }}
             />
 
@@ -107,13 +112,13 @@ const Pricing = () => {
           </div>
         </div>
 
-        <div className="mt-8 p-6 bg-surface border-3 border-muted grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-4 z-20 shadow-brutal max-w-5xl w-full">
+        <div className="mt-8 p-6 bg-surface border-3 border-muted grid grid-cols-2 md:grid-cols-5 gap-x-8 gap-y-4 z-20 shadow-brutal max-w-6xl w-full">
           <div className="flex flex-col gap-1">
             <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Glow Color</span>
             <input type="color" value={glowColor} onChange={(e) => setGlowColor(e.target.value)} className="w-full h-8 bg-transparent border-none cursor-pointer" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Glow Intensity</span>
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Glow Int.</span>
             <input type="range" min="0" max="0.5" step="0.01" value={glowIntensity} onChange={(e) => setGlowIntensity(Number(e.target.value))} className="accent-active" />
           </div>
           <div className="flex flex-col gap-1">
@@ -121,7 +126,7 @@ const Pricing = () => {
             <input type="color" value={patternColor} onChange={(e) => setPatternColor(e.target.value)} className="w-full h-8 bg-transparent border-none cursor-pointer" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Pattern Opacity</span>
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Pattern Opac.</span>
             <input type="range" min="0" max="0.2" step="0.01" value={patternOpacity} onChange={(e) => setPatternOpacity(Number(e.target.value))} className="accent-active" />
           </div>
           <div className="flex flex-col gap-1">
@@ -133,11 +138,23 @@ const Pricing = () => {
             <input type="range" min="20" max="300" step="1" value={patternSpacing} onChange={(e) => setPatternSpacing(Number(e.target.value))} className="accent-active" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Anim Speed (s)</span>
-            <input type="range" min="5" max="120" step="1" value={animDuration} onChange={(e) => setAnimDuration(Number(e.target.value))} className="accent-active" />
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Speed</span>
+            <input type="range" min="1" max="120" step="1" value={animDuration} onChange={(e) => setAnimDuration(Number(e.target.value))} className="accent-active" />
           </div>
           <div className="flex flex-col gap-1">
-            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Gradient</span>
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Angle</span>
+            <input type="range" min="0" max="360" step="1" value={patternRotation} onChange={(e) => setPatternRotation(Number(e.target.value))} className="accent-active" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Drift X</span>
+            <input type="range" min="-300" max="300" step="1" value={patternDriftX} onChange={(e) => setPatternDriftX(Number(e.target.value))} className="accent-active" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Drift Y</span>
+            <input type="range" min="-300" max="300" step="1" value={patternDriftY} onChange={(e) => setPatternDriftY(Number(e.target.value))} className="accent-active" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Gradient Int.</span>
             <input type="range" min="0" max="0.2" step="0.01" value={gradientIntensity} onChange={(e) => setGradientIntensity(Number(e.target.value))} className="accent-active" />
           </div>
         </div>

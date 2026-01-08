@@ -138,12 +138,12 @@
       background-position: 0 0;
     }
     to {
-      background-position: 100px 100px;
+      background-position: var(--pattern-drift-x, 100px) var(--pattern-drift-y, 100px);
     }
   }
 
   .animate-pattern-drift {
-    animation: pattern-drift 30s linear infinite;
+    animation: pattern-drift var(--pattern-drift-speed, 30s) linear infinite;
   }
 }
 
