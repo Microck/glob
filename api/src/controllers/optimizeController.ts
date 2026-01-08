@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const API_ROOT = path.resolve(__dirname, "..", "..", "..");
-const TMP_DIR = path.join(API_ROOT, "tmp");
+const TMP_DIR = process.env.VERCEL ? "/tmp" : path.join(API_ROOT, "tmp");
 
 const UPLOAD_DIR = path.join(TMP_DIR, "uploads");
 const OPTIMIZED_DIR = path.join(TMP_DIR, "optimized");

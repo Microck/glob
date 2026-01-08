@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const API_ROOT = path.resolve(__dirname, "..", "..");
-const TMP_DIR = path.join(API_ROOT, "tmp");
+const TMP_DIR = process.env.VERCEL ? "/tmp" : path.join(API_ROOT, "tmp");
 
 async function ensureTmpDirs(): Promise<void> {
   await fs.mkdir(path.join(TMP_DIR, "uploads"), { recursive: true });
