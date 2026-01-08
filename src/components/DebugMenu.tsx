@@ -1,57 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
+import TypewriterText from './TypewriterText';
+import FlickerLabel from './FlickerLabel';
 
 gsap.registerPlugin(Draggable);
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
-
-const TypewriterText = ({ text, className = '' }: { text: string; className?: string }) => {
-  const [displayText, setDisplayText] = useState('');
-  
-  useEffect(() => {
-    let currentText = '';
-    let index = 0;
-    
-    const interval = setInterval(() => {
-      if (index < text.length) {
-        currentText += text[index];
-        setDisplayText(currentText);
-        index++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 30);
-    
-    return () => clearInterval(interval);
-  }, [text]);
-  
-  return (
-    <span className={className}>
-      {displayText}
-      <span className="animate-pulse inline-block w-[0.5em] h-[1em] bg-current align-text-bottom ml-1 opacity-50" />
-    </span>
-  );
-};
-
-const FlickerLabel = ({ text, className = '' }: { text: string; className?: string }) => {
-  const labelRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    if (!labelRef.current) return;
-    
-    const tl = gsap.timeline({ repeat: -1, repeatDelay: 5 });
-    
-    tl.to(labelRef.current, { opacity: 0.7, duration: 0.1 })
-      .to(labelRef.current, { opacity: 1, duration: 0.1 })
-      .to(labelRef.current, { opacity: 0.8, duration: 0.05 })
-      .to(labelRef.current, { opacity: 1, duration: 0.1 });
-    
-    return () => { tl.kill(); };
-  }, []);
-  
-  return <div ref={labelRef} className={className}>{text}</div>;
-};
 
 interface DebugMenuProps {
   appState: AppState;

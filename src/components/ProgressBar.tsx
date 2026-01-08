@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import gsap from 'gsap';
+import TypewriterText from './TypewriterText';
 
 interface ProgressBarProps {
   progress: number;
@@ -11,6 +12,8 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const catRef = useRef<HTMLImageElement>(null);
   
+  const isComplete = message === 'COMPLETE' && progress === 100;
+
   useEffect(() => {
     setDisplayProgress(progress);
   }, [progress]);
@@ -25,37 +28,27 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
   }, []);
 
   useEffect(() => {
-    if (!catRef.current || message === 'COMPLETE') return;
+    if (!catRef.current) return;
 
-    const tl = gsap.timeline({ repeat: -1 });
+    const tl = gsap.timeline({ repeat: -1, yoyo: true });
     
+    gsap.set(catRef.current, { rotation: 0 });
+
     tl.to(catRef.current, {
-      rotation: -9,
-      duration: 0.6,
+      rotation: -10,
+      duration: 0.8,
       ease: 'sine.inOut',
       transformOrigin: 'bottom center'
     })
     .to(catRef.current, {
-      rotation: 4,
-      duration: 0.6,
+      rotation: 10,
+      duration: 1.6,
       ease: 'sine.inOut',
       transformOrigin: 'bottom center'
     })
     .to(catRef.current, {
-      rotation: -7,
-      duration: 0.5,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: 3,
-      duration: 0.5,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: -9,
-      duration: 0.4,
+      rotation: 0,
+      duration: 0.8,
       ease: 'sine.inOut',
       transformOrigin: 'bottom center'
     });
@@ -63,14 +56,19 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
     return () => {
       tl.kill();
     };
-  }, [message]);
+  }, []);
+
+  useEffect(() => {
+    if (isComplete && catRef.current) {
+      gsap.killTweensOf(catRef.current);
+      gsap.to(catRef.current, { rotation: 0, duration: 0.5, ease: 'back.out(1.7)' });
+    }
+  }, [isComplete]);
 
   const totalChars = 20;
   const filledCount = Math.floor((displayProgress / 100) * totalChars);
   const emptyCount = totalChars - filledCount;
   const bar = '[' + '|'.repeat(filledCount) + '.'.repeat(emptyCount) + ']';
-
-  const isComplete = message === 'COMPLETE' && progress === 100;
 
   return (
     <div 
@@ -95,7 +93,7 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
         {bar} {displayProgress}%
       </div>
       <div className="font-ui text-xs text-muted mt-1 truncate max-w-[90%]">
-        {message}
+        <TypewriterText text={message} />
       </div>
     </div>
   );
