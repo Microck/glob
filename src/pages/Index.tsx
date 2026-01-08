@@ -75,7 +75,6 @@ const Index = () => {
   }, []);
 
   const handleModelLoaded = useCallback(() => {
-    console.log("Model successfully loaded in background");
     setProgress(100);
     setTimeout(() => {
       setIsModelLoading(false);
@@ -259,75 +258,6 @@ const Index = () => {
           
             {isModelLoading && file && (
               <div className="absolute inset-0 opacity-0 pointer-events-none" style={{ zIndex: -100 }}>
-                <GLBViewer 
-                  file={file} 
-                  onReset={handleReset} 
-                  onReady={handleModelLoaded} 
-                  onProgress={handleModelProgress}
-                />
-              </div>
-            )}
-        </div>
-      )}
-      
-      {appState === 'preview' && file && (
-        <div className="w-full flex flex-col items-center">
-          {isDebugMode ? (
-            <div className="w-full aspect-[16/9] max-w-4xl border-3 border-muted bg-surface flex items-center justify-center">
-              <div className="text-center">
-                <div className="font-ui text-sm text-muted mb-2">[DEBUG MODE]</div>
-                <div className="font-display text-2xl text-reading">3D VIEWER PLACEHOLDER</div>
-                <div className="font-ui text-xs text-muted mt-2">Load a real .glb file to see the viewer</div>
-              </div>
-            </div>
-          ) : (
-            <GLBViewer file={file} onReset={handleReset} />
-          )}
-          <div className="mt-0 w-full">
-            <Controls
-              decimation={decimation}
-              dracoLevel={dracoLevel}
-              onDecimationChange={setDecimation}
-              onDracoChange={setDracoLevel}
-              onCompress={handleCompress}
-              isProcessing={false}
-              hasFile={true}
-              mode={mode}
-              onModeChange={setMode}
-              simpleTarget={simpleTarget}
-              onSimpleTargetChange={setSimpleTarget}
-              desiredSize={desiredSize}
-              onDesiredSizeChange={setDesiredSize}
-              desiredPolygons={desiredPolygons}
-              onDesiredPolygonsChange={setDesiredPolygons}
-              originalSize={file.size}
-              originalPolygons={facesBefore || 1000}
-              weld={weld}
-              onWeldChange={setWeld}
-              quantize={quantize}
-              onQuantizeChange={setQuantize}
-              draco={draco}
-              onDracoChangeToggle={setDraco}
-              textureQuality={textureQuality}
-              onTextureQualityChange={setTextureQuality}
-            />
-          </div>
-        </div>
-      )}
-
-      {(appState === 'processing' || isModelLoading) && (
-        <div className="w-full">
-          <div className="mb-8 text-center">
-            <ScrambleText 
-              text={currentMessage.includes('LOADING') ? 'LOADING' : 'COMPRESSING'} 
-              isActive={true}
-              className="font-display text-5xl text-active tracking-brutal"
-            />
-          </div>
-          <ProgressBar progress={progress} message={currentMessage} />
-          
-            {isModelLoading && file && (
-              <div className="hidden">
                 <GLBViewer 
                   file={file} 
                   onReset={handleReset} 
