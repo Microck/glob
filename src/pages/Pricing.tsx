@@ -58,12 +58,12 @@ const Pricing = () => {
               }}
             />
 
-            <div className="absolute top-0 right-0 z-[5]">
+            <div className="absolute top-0 right-0 z-[15]">
               <img 
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-15.6px, -51.4px)',
+                  transform: 'translate(-15.6px, -58.1px)',
                   width: '105.3px',
                   height: '59.4px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
