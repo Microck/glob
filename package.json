@@ -9,7 +9,6 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-
     "api:dev": "tsx watch api/src/server.ts",
     "api:build": "tsc -p api/tsconfig.json",
     "api:start": "node api/dist/server.js"
@@ -58,6 +57,7 @@
     "draco3d": "^1.5.7",
     "embla-carousel-react": "^8.6.0",
     "express": "^4.19.2",
+    "gsap": "^3.14.2",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
     "meshoptimizer": "^0.18.1",

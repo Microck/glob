@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
 import * as THREE from 'three';
+import gsap from 'gsap';
 
 interface ModelProps {
   url: string;
@@ -13,10 +14,8 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
   const clonedScene = scene.clone(true);
   
   useEffect(() => {
-    // Ensure all materials are properly configured for visibility
     clonedScene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
-        // Ensure material is visible and properly configured
         if (child.material) {
           if (wireframe) {
             child.material = new THREE.MeshBasicMaterial({ 
@@ -25,7 +24,6 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
               wireframeLinewidth: 1
             });
           } else {
-            // Ensure normal materials are visible
             if (Array.isArray(child.material)) {
               child.material.forEach((mat) => {
                 mat.transparent = false;
@@ -39,7 +37,6 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
             }
           }
         }
-        // Ensure mesh is visible
         child.visible = true;
         child.renderOrder = 0;
       }
@@ -56,6 +53,13 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
   }, [clonedScene, wireframe]);
 
   return <primitive object={clonedScene} />;
+};
+
+const SHARED_LIGHTING = {
+  ambient: 0.7,
+  directional: 1.2,
+  point: 0.5,
+  background: 'hsl(273, 12%, 20%)'
 };
 
 interface ComparisonViewerProps {
@@ -80,11 +84,20 @@ const ComparisonViewer = ({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
   
-  // Refs for synchronized camera
-  const leftControlsRef = useRef<import('@react-three/drei').OrbitControls>(null);
-  const rightControlsRef = useRef<import('@react-three/drei').OrbitControls>(null);
+  const leftControlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
+  const rightControlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
   const isSyncing = useRef(false);
+
+  useEffect(() => {
+    if (mainContainerRef.current) {
+      gsap.fromTo(mainContainerRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
@@ -97,8 +110,6 @@ const ComparisonViewer = ({
 
   useEffect(() => {
     if (optimizedUrl) {
-      // For now, we'll use the same URL since we don't have the actual optimized file yet
-      // In a real implementation, you'd fetch and create an object URL from the optimized file
       const url = URL.createObjectURL(file);
       setOptimizedObjectUrl(url);
       
@@ -132,7 +143,6 @@ const ComparisonViewer = ({
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
-  // Sync cameras
   const syncCameras = useCallback((source: 'left' | 'right') => {
     if (isSyncing.current) return;
     isSyncing.current = true;
@@ -158,15 +168,13 @@ const ComparisonViewer = ({
   if (!objectUrl) return null;
 
   return (
-    <div className="w-full max-w-4xl">
-      {/* Comparison View */}
+    <div ref={mainContainerRef} className="w-full max-w-4xl">
       <div 
         ref={containerRef}
         className="relative w-full aspect-[16/9] border-3 border-muted overflow-hidden select-none"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
       >
-        {/* Original (Left Side) */}
         <div 
           className="absolute inset-0"
           style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
@@ -179,12 +187,12 @@ const ComparisonViewer = ({
           </div>
           <Canvas
             camera={{ position: [3, 3, 3], fov: 45 }}
-            style={{ background: 'hsl(273, 12%, 20%)' }}
+            style={{ background: SHARED_LIGHTING.background }}
           >
             <Suspense fallback={null}>
-              <ambientLight intensity={0.7} />
-              <directionalLight position={[10, 10, 5]} intensity={1.2} />
-              <pointLight position={[-10, -10, -10]} intensity={0.5} />
+              <ambientLight intensity={SHARED_LIGHTING.ambient} />
+              <directionalLight position={[10, 10, 5]} intensity={SHARED_LIGHTING.directional} />
+              <pointLight position={[-10, -10, -10]} intensity={SHARED_LIGHTING.point} />
               <Center>
                 <Model url={objectUrl} wireframe={false} />
               </Center>
@@ -198,7 +206,6 @@ const ComparisonViewer = ({
           </Canvas>
         </div>
 
-        {/* Optimized (Right Side - Actual Model) */}
         <div 
           className="absolute inset-0"
           style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}
@@ -211,12 +218,12 @@ const ComparisonViewer = ({
           </div>
           <Canvas
             camera={{ position: [3, 3, 3], fov: 45 }}
-            style={{ background: 'hsl(276, 8%, 18%)' }}
+            style={{ background: SHARED_LIGHTING.background }}
           >
             <Suspense fallback={null}>
-              <ambientLight intensity={0.7} />
-              <directionalLight position={[10, 10, 5]} intensity={1.2} />
-              <pointLight position={[-10, -10, -10]} intensity={0.5} />
+              <ambientLight intensity={SHARED_LIGHTING.ambient} />
+              <directionalLight position={[10, 10, 5]} intensity={SHARED_LIGHTING.directional} />
+              <pointLight position={[-10, -10, -10]} intensity={SHARED_LIGHTING.point} />
               <Center>
                 <Model url={optimizedObjectUrl || objectUrl} wireframe={false} />
               </Center>
@@ -225,11 +232,11 @@ const ComparisonViewer = ({
                 enableDamping={false}
                 onChange={() => syncCameras('right')}
               />
+              <Environment preset="warehouse" />
             </Suspense>
           </Canvas>
         </div>
 
-        {/* Slider Handle */}
         <div 
           className="absolute top-0 bottom-0 w-1 bg-active z-20 cursor-ew-resize"
           style={{ left: `${sliderPosition}%`, transform: 'translateX(-50%)' }}
@@ -247,14 +254,12 @@ const ComparisonViewer = ({
           </div>
         </div>
 
-        {/* Labels */}
         <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 py-2 pointer-events-none">
           <span className="font-ui text-xs text-muted bg-surface/80 px-2 py-1">◀ ORIGINAL</span>
           <span className="font-ui text-xs text-active bg-surface/80 px-2 py-1">OPTIMIZED ▶</span>
         </div>
       </div>
 
-      {/* Stats Bar */}
       <div className="flex border-3 border-t-0 border-muted">
         <div className="flex-1 p-4 border-r-3 border-muted bg-surface">
           <span className="font-ui text-xs text-muted">REDUCTION</span>
@@ -270,7 +275,6 @@ const ComparisonViewer = ({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex">
         <button
           onClick={onDownload}
