@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { Draggable } from 'gsap/all';
 import TypewriterText from './TypewriterText';
 import FlickerLabel from './FlickerLabel';
+import { AnimationType } from './DropZone';
 
 gsap.registerPlugin(Draggable);
 
@@ -11,6 +12,9 @@ type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 interface DebugMenuProps {
   appState: AppState;
   onStateChange: (state: AppState) => void;
+  animationType?: AnimationType;
+  onAnimationChange?: (type: AnimationType) => void;
+  onReplay?: () => void;
 }
 
 interface ElementInfo {
@@ -118,7 +122,13 @@ const TransformHandles = ({ element, onUpdate }: { element: ElementInfo, onUpdat
   );
 };
 
-const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
+const DebugMenu = ({ 
+  appState, 
+  onStateChange,
+  animationType,
+  onAnimationChange,
+  onReplay
+}: DebugMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPickMode, setIsPickMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
@@ -402,6 +412,31 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
           </div>
           <div className="font-mono text-xs text-muted mt-2">
             current: {appState}
+          </div>
+        </div>
+
+        <div className="p-3 border-b-3 border-muted">
+          <FlickerLabel text="UI_ANIMATIONS" className="font-ui text-xs text-muted mb-2" />
+          <div className="flex flex-col gap-2">
+            <select
+              value={animationType || 'glitch-slide'}
+              onChange={(e) => onAnimationChange?.(e.target.value as AnimationType)}
+              className="w-full bg-surface border-2 border-muted text-reading font-ui text-xs p-2 focus:border-active focus:outline-none"
+            >
+              <option value="glitch-slide">GLITCH SLIDE</option>
+              <option value="elastic-pop">ELASTIC POP</option>
+              <option value="flash-bang">FLASH BANG</option>
+              <option value="cinema-scope">CINEMA SCOPE</option>
+              <option value="curtain">CURTAIN</option>
+              <option value="blur-snap">BLUR SNAP</option>
+              <option value="squeeze">SQUEEZE</option>
+            </select>
+            <button
+              onClick={onReplay}
+              className="w-full border-2 border-active text-active font-ui text-xs py-2 hover:bg-active hover:text-surface"
+            >
+              REPLAY ANIMATION
+            </button>
           </div>
         </div>
 
