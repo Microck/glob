@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Check } from "lucide-react";
 import PageLayout from '@/components/PageLayout';
 
 const Pricing = () => {
   const pawPattern = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='%23E7D9D5' fill-opacity='0.03'%3E%3Cpath d='M12 14c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm-5-4c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-7-2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm4 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E")`;
+
+  const [glowIntensity, setGlowIntensity] = useState(0.08);
+  const [gradientIntensity, setGradientIntensity] = useState(0.02);
+  const [patternOpacity, setPatternOpacity] = useState(0.4);
 
   return (
     <PageLayout isCentered={true}>
@@ -34,21 +39,22 @@ const Pricing = () => {
             className="border-3 border-active p-8 flex flex-col h-full relative shadow-brutal overflow-hidden"
             style={{ 
               background: `
-                radial-gradient(circle at 90% 10%, rgba(252, 110, 131, 0.08) 0%, transparent 60%),
-                linear-gradient(135deg, rgba(231, 217, 213, 0.02) 0%, transparent 100%),
+                radial-gradient(circle at 90% 10%, rgba(252, 110, 131, ${glowIntensity}) 0%, transparent 60%),
+                linear-gradient(135deg, rgba(231, 217, 213, ${gradientIntensity}) 0%, transparent 100%),
                 #332D3B
               `
             }}
           >
             <div 
-              className="absolute inset-0 z-0 animate-pattern-drift pointer-events-none opacity-40"
+              className="absolute inset-0 z-0 animate-pattern-drift pointer-events-none"
               style={{ 
                 backgroundImage: pawPattern,
-                backgroundSize: '120px 120px'
+                backgroundSize: '120px 120px',
+                opacity: patternOpacity
               }}
             />
 
-            <div className="absolute top-0 right-0 z-[-1]">
+            <div className="absolute top-0 right-0 z-[5]">
               <img 
                 src="/finished.svg" 
                 alt="Recommended" 
@@ -87,6 +93,21 @@ const Pricing = () => {
             >
               Upgrade Now
             </a>
+          </div>
+        </div>
+
+        <div className="mt-8 p-4 bg-surface border-2 border-muted flex gap-6 z-20 shadow-brutal">
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Glow</span>
+            <input type="range" min="0" max="0.5" step="0.01" value={glowIntensity} onChange={(e) => setGlowIntensity(Number(e.target.value))} className="w-32 accent-active" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Gradient</span>
+            <input type="range" min="0" max="0.2" step="0.01" value={gradientIntensity} onChange={(e) => setGradientIntensity(Number(e.target.value))} className="w-32 accent-active" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Pattern</span>
+            <input type="range" min="0" max="1" step="0.05" value={patternOpacity} onChange={(e) => setPatternOpacity(Number(e.target.value))} className="w-32 accent-active" />
           </div>
         </div>
       </div>
