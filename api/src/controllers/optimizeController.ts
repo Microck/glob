@@ -11,6 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations } from "../services/dbService.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2 } from "../services/r2Service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -79,14 +80,15 @@ setInterval(async () => {
       if (!file.endsWith('.json')) continue;
       
       const metaPath = path.join(OPTIMIZED_DIR, file);
-      const glbPath = path.join(OPTIMIZED_DIR, file.replace('.json', '.glb'));
       
       try {
         const metaContent = await fs.readFile(metaPath, 'utf-8');
         const metadata = JSON.parse(metaContent);
         if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+          if (metadata.storageKey) {
+            await deleteFromR2(metadata.storageKey).catch(() => undefined);
+          }
           await fs.unlink(metaPath).catch(() => undefined);
-          await fs.unlink(glbPath).catch(() => undefined);
         }
       } catch {
       }
@@ -135,16 +137,17 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
     const { optimizedBuffer, stats } = await processGlb(buffer, settings);
 
     const jobId = randomUUID();
-    const outPath = path.join(OPTIMIZED_DIR, `${jobId}.glb`);
+    const storageKey = `${jobId}.glb`;
 
-    await fs.writeFile(outPath, optimizedBuffer);
+    await uploadToR2(storageKey, optimizedBuffer);
     
     const metadata = {
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + expirationMs).toISOString(), 
       originalSize,
       optimizedSize: optimizedBuffer.byteLength,
-      stats
+      stats,
+      storageKey
     };
     await fs.writeFile(path.join(OPTIMIZED_DIR, `${jobId}.json`), JSON.stringify(metadata));
 
@@ -184,34 +187,25 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
     return res.status(400).json({ status: "error", message: "Invalid download id" });
   }
 
-  const filePath = path.join(OPTIMIZED_DIR, `${id}.glb`);
   const metaPath = path.join(OPTIMIZED_DIR, `${id}.json`);
 
   try {
-    await fs.access(filePath);
+    const metaContent = await fs.readFile(metaPath, 'utf-8');
+    const metadata = JSON.parse(metaContent);
     
-    try {
-      const metaContent = await fs.readFile(metaPath, 'utf-8');
-      const metadata = JSON.parse(metaContent);
-      if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
-        await fs.unlink(filePath).catch(() => undefined);
-        await fs.unlink(metaPath).catch(() => undefined);
-        return res.status(410).json({ status: "error", message: "File expired" });
+    if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+      if (metadata.storageKey) {
+        await deleteFromR2(metadata.storageKey).catch(() => undefined);
       }
-    } catch {
+      await fs.unlink(metaPath).catch(() => undefined);
+      return res.status(410).json({ status: "error", message: "File expired" });
     }
+
+    const signedUrl = await getDownloadUrl(metadata.storageKey);
+    return res.redirect(signedUrl);
   } catch {
     return res.status(404).json({ status: "error", message: "File not found" });
   }
-
-  return res.download(filePath, `optimized-${id}.glb`, (err) => {
-    if (err) {
-      res.status(500).json({ status: "error", message: "Failed to download file" });
-      return;
-    }
-
-    fs.unlink(filePath).catch(() => undefined);
-  });
 });
 
 optimizeRouter.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {

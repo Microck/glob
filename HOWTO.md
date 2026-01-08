@@ -52,7 +52,20 @@ This guide covers the necessary steps to set up the authentication, database, an
 
 ---
 
-## 4. Environment Variables Checklist
+## 4. Storage: Cloudflare R2
+
+1.  **Create a Bucket**: Go to the Cloudflare dashboard, select **R2**, and create a new bucket named `glob-models`.
+2.  **Get Credentials**:
+    *   Go to **R2 > Manage R2 API Tokens**.
+    *   Create a new API token with **Edit** permissions.
+    *   Copy the **Access Key ID** and **Secret Access Key**.
+    *   Copy your **Account ID** (found on the R2 overview page).
+3.  **Environment Variables**:
+    *   Backend: Add `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, and `R2_BUCKET_NAME` to your `api/.env`.
+
+---
+
+## 5. Environment Variables Checklist
 
 Ensure these are present in your deployment or local `.env` files:
 
@@ -70,11 +83,17 @@ NEXT_PUBLIC_SUPABASE_URL=https://...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 CLERK_SECRET_KEY=sk_...
 POLAR_WEBHOOK_SECRET=whsec_...
+
+# Cloudflare R2
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=glob-models
 ```
 
 ---
 
-## 5. Running Locally
+## 6. Running Locally
 
 1.  **Install Dependencies**: `npm install` in the root and `npm install` in the `api` folder.
 2.  **Start API**: `npm run api:dev`
