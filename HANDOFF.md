@@ -1,22 +1,18 @@
-# Handoff: Brutalist Debug Menu & Polish
+# Handoff: Brutalist Animation Overhaul
 
 ## Completed Work
-- **Debug Menu**: Implemented comprehensive debug menu with "Pick Element" mode and "Transform Handles" (Photoshop-style resizing).
-- **Animations**: Added "Lowkey" brutalist animations (TypewriterText, FlickerLabel) to the debug menu.
-- **Loading Animation**: Updated `loading.svg` styling (larger, scaled).
-- **Linting**: Fixed all lint errors across the project.
-- **Backend**: Verified build and type safety for the optimization API.
+- **Animation Strategy**: Replaced generic "fade-up" animations with varied, brutalist-inspired effects across the UI.
+- **Header**: Reverted text to static "glob" (removed problematic animation).
+- **DropZone**: Implemented "Block Reveal" (hard wipe left-to-right).
+- **Controls**: Implemented "Staggered Snap" (sharp slide-up).
+- **ComparisonViewer**: Implemented "Glitch Entrance" (blur + scale snap).
+- **GLBViewer**: Implemented "Elastic Scale" (pop-in).
+- **Roadmap**: Created `todo.md` with planned features (polygon count, wireframe, premium, etc.).
 
 ## Current State
-- **Branch**: `main` (Merged PR #8)
-- **Build**: Passing (`npm run build`, `npm run api:build`)
-- **Lint**: Passing (`npm run lint`)
-
-## Features
-- **Ctrl+`** toggles the Debug Menu.
-- **Resize Handles**: Select an element in "Pick Mode" to see resize handles (SE, E, S).
-- **Typewriter Effect**: Subtle text animations in the debug menu.
+- **Branch**: `main` (Merged PR #9 previously, now on `mic/brutalist-polish-2` effectively but actually I'm working on `main` directly for this step).
+- **Build**: verified passing.
 
 ## Next Steps
-- Implement backend optimization logic if not fully complete (currently scaffolded).
-- Add actual drag-and-drop resizing logic to the `TransformHandles` (currently modifies styles directly, might need `Draggable` integration for smoother experience if desired).
+- Execute items from `todo.md` (e.g., polygon counts, wireframe).
+- Refine animations based on user feedback (timing/easings).
