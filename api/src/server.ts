@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
 
 import { optimizeRouter } from "./controllers/optimizeController.js";
+import { webhookRouter } from "./controllers/webhookController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +51,9 @@ async function main(): Promise<void> {
     res.json({ status: "ok" });
   });
 
+  app.use("/api/webhooks", express.text({ type: "application/json" }), webhookRouter);
+
+  app.use(express.json());
   app.use("/api", optimizeRouter);
 
   app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

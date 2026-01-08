@@ -9,8 +9,8 @@ gsap.registerPlugin(Draggable);
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
 interface DebugMenuProps {
-  appState: AppState;
-  onStateChange: (state: AppState) => void;
+  appState?: AppState;
+  onStateChange?: (state: AppState) => void;
 }
 
 interface ElementInfo {
@@ -118,7 +118,7 @@ const TransformHandles = ({ element, onUpdate }: { element: ElementInfo, onUpdat
   );
 };
 
-const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
+const DebugMenu = ({ appState = 'idle', onStateChange }: DebugMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPickMode, setIsPickMode] = useState(false);
   const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
@@ -370,7 +370,7 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
         className="fixed top-4 right-4 z-50 w-80 bg-surface border-3 border-muted max-h-[90vh] overflow-y-auto shadow-2xl"
       >
         <div className="flex justify-between items-center px-3 py-2 border-b-3 border-muted">
-          <TypewriterText text="DEBUG_MENU" className="font-ui text-sm text-active" />
+          <TypewriterText text="DEBUG MENU" className="font-ui text-sm text-active" />
           <button
             onClick={() => setIsOpen(false)}
             className="font-ui text-xs text-muted hover:text-active"
@@ -379,34 +379,36 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
           </button>
         </div>
 
-        <div className="p-3 border-b-3 border-muted">
-          <FlickerLabel text="APP_STATE" className="font-ui text-xs text-muted mb-2" />
-          <div className="flex flex-wrap gap-1">
-            {states.map(state => (
-              <button
-                key={state}
-                onClick={() => {
-                  console.log('Debug: switching to state:', state);
-                  onStateChange(state);
-                }}
-                className={`font-ui text-xs px-2 py-1 border-2 ${
-                  appState === state 
-                    ? 'border-active text-active bg-active/20' 
-                    : 'border-muted text-muted hover:border-active hover:text-active'
-                }`}
-                style={{ transition: 'none' }}
-              >
-                {state.toUpperCase()}
-              </button>
-            ))}
+        {onStateChange && (
+          <div className="p-3 border-b-3 border-muted">
+            <FlickerLabel text="APP STATE" className="font-ui text-xs text-muted mb-2" />
+            <div className="flex flex-wrap gap-1">
+              {states.map(state => (
+                <button
+                  key={state}
+                  onClick={() => {
+                    console.log('Debug: switching to state:', state);
+                    onStateChange(state);
+                  }}
+                  className={`font-ui text-xs px-2 py-1 border-2 ${
+                    appState === state 
+                      ? 'border-active text-active bg-active/20' 
+                      : 'border-muted text-muted hover:border-active hover:text-active'
+                  }`}
+                  style={{ transition: 'none' }}
+                >
+                  {state.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <div className="font-mono text-xs text-muted mt-2">
+              current: {appState}
+            </div>
           </div>
-          <div className="font-mono text-xs text-muted mt-2">
-            current: {appState}
-          </div>
-        </div>
+        )}
 
         <div className="p-3 border-b-3 border-muted">
-          <FlickerLabel text="MAKE_DRAGGABLE" className="font-ui text-xs text-muted mb-2" />
+          <FlickerLabel text="MAKE DRAGGABLE" className="font-ui text-xs text-muted mb-2" />
           
           <button
             onClick={() => setIsPickMode(true)}
@@ -536,7 +538,7 @@ const DebugMenu = ({ appState, onStateChange }: DebugMenuProps) => {
 
         {elements.length > 0 && (
           <div className="p-3 border-b-3 border-muted">
-            <FlickerLabel text={`ALL_ELEMENTS (${elements.length})`} className="font-ui text-xs text-muted mb-2" />
+            <FlickerLabel text={`ALL ELEMENTS (${elements.length})`} className="font-ui text-xs text-muted mb-2" />
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {elements.map(el => (
                 <div 

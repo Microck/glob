@@ -1,17 +1,24 @@
-import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
+import { Switch } from '@/components/ui/switch';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import { Share2, Focus } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ModelProps {
   url: string;
   wireframe?: boolean;
 }
 
-const Model = ({ url, wireframe = false }: ModelProps) => {
+const Model = ({ url, wireframe = false, clay = false }: ModelProps & { clay?: boolean }) => {
   const { scene } = useGLTF(url);
-  const clonedScene = scene.clone(true);
+  const clonedScene = useMemo(() => {
+    const s = scene.clone(true);
+    s.userData.mode = wireframe ? 'wireframe' : clay ? 'clay' : 'default'; 
+    return s;
+  }, [scene, wireframe, clay]);
   
   useEffect(() => {
     clonedScene.traverse((child) => {
@@ -22,6 +29,13 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
               color: 0xFC6E83, 
               wireframe: true,
               wireframeLinewidth: 1
+            });
+          } else if (clay) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0xeeeeee,
+              roughness: 0.8,
+              metalness: 0.1,
+              flatShading: false
             });
           } else {
             if (Array.isArray(child.material)) {
@@ -43,14 +57,11 @@ const Model = ({ url, wireframe = false }: ModelProps) => {
     });
 
     const box = new THREE.Box3().setFromObject(clonedScene);
-    const center = box.getCenter(new THREE.Vector3());
-    clonedScene.position.sub(center);
-    
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2 / maxDim;
+    const scale = (2 / maxDim) * 0.9; 
     clonedScene.scale.setScalar(scale);
-  }, [clonedScene, wireframe]);
+  }, [clonedScene, wireframe, clay]);
 
   return <primitive object={clonedScene} />;
 };
@@ -69,6 +80,10 @@ interface ComparisonViewerProps {
   optimizedUrl?: string;
   onDownload: () => void;
   onReset: () => void;
+  facesBefore?: number;
+  facesAfter?: number;
+  verticesBefore?: number;
+  verticesAfter?: number;
 }
 
 const ComparisonViewer = ({ 
@@ -77,18 +92,51 @@ const ComparisonViewer = ({
   compressedSize, 
   optimizedUrl,
   onDownload, 
-  onReset 
+  onReset,
+  facesBefore,
+  facesAfter,
+  verticesBefore,
+  verticesAfter
 }: ComparisonViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [optimizedObjectUrl, setOptimizedObjectUrl] = useState<string | null>(null);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
+  const [wireframe, setWireframe] = useState(false);
+  const [clay, setClay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
   
   const leftControlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
   const rightControlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
   const isSyncing = useRef(false);
+  
+  const { toast } = useToast();
+
+  const handleShare = () => {
+    if (!optimizedUrl) return;
+    const id = optimizedUrl.split('/').pop();
+    const shareUrl = `${window.location.origin}/share/${id}`;
+    
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "LINK COPIED",
+      description: "Share link copied to clipboard (expires in 1h)",
+    });
+  };
+
+  const handleCenterModel = useCallback(() => {
+    if (leftControlsRef.current && rightControlsRef.current) {
+      leftControlsRef.current.reset();
+      rightControlsRef.current.reset();
+      
+      leftControlsRef.current.target.set(0, 0, 0);
+      rightControlsRef.current.target.set(0, 0, 0);
+      
+      leftControlsRef.current.update();
+      rightControlsRef.current.update();
+    }
+  }, []);
 
   useEffect(() => {
     if (mainContainerRef.current) {
@@ -180,10 +228,22 @@ const ComparisonViewer = ({
           style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
           <div className="absolute top-0 left-0 z-10 px-4 py-2 bg-surface/90 border-r-3 border-b-3 border-muted">
-            <span className="font-ui text-xs text-muted">ORIGINAL</span>
+            <span className="font-ui text-[10px] text-muted tracking-widest uppercase">Original</span>
             <div className="font-display text-lg text-reading">
               {(originalSize / 1024 / 1024).toFixed(2)} MB
             </div>
+            {facesBefore !== undefined && verticesBefore !== undefined && (
+              <div className="mt-1 flex gap-3">
+                <div>
+                  <div className="font-ui text-[9px] text-muted uppercase tracking-wider">Faces</div>
+                  <div className="font-mono text-xs text-reading">{facesBefore.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="font-ui text-[9px] text-muted uppercase tracking-wider">Verts</div>
+                  <div className="font-mono text-xs text-reading">{verticesBefore.toLocaleString()}</div>
+                </div>
+              </div>
+            )}
           </div>
           <Canvas
             camera={{ position: [3, 3, 3], fov: 45 }}
@@ -194,9 +254,9 @@ const ComparisonViewer = ({
               <directionalLight position={[10, 10, 5]} intensity={SHARED_LIGHTING.directional} />
               <pointLight position={[-10, -10, -10]} intensity={SHARED_LIGHTING.point} />
               <Center>
-                <Model url={objectUrl} wireframe={false} />
+                <Model url={objectUrl} wireframe={wireframe} clay={clay} />
               </Center>
-              <OrbitControls 
+              <OrbitControls
                 ref={leftControlsRef}
                 enableDamping={false} 
                 onChange={() => syncCameras('left')}
@@ -210,11 +270,23 @@ const ComparisonViewer = ({
           className="absolute inset-0"
           style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}
         >
-          <div className="absolute top-0 right-0 z-10 px-4 py-2 bg-surface/90 border-l-3 border-b-3 border-muted">
-            <span className="font-ui text-xs text-active">OPTIMIZED</span>
+          <div className="absolute top-0 right-0 z-10 px-4 py-2 bg-surface/90 border-l-3 border-b-3 border-muted text-right">
+            <span className="font-ui text-[10px] text-active tracking-widest uppercase">Optimized</span>
             <div className="font-display text-lg text-active">
               {(compressedSize / 1024 / 1024).toFixed(2)} MB
             </div>
+            {facesAfter !== undefined && verticesAfter !== undefined && (
+              <div className="mt-1 flex gap-3 justify-end">
+                <div>
+                  <div className="font-ui text-[9px] text-active uppercase tracking-wider">Faces</div>
+                  <div className="font-mono text-xs text-active">{facesAfter.toLocaleString()}</div>
+                </div>
+                <div>
+                  <div className="font-ui text-[9px] text-active uppercase tracking-wider">Verts</div>
+                  <div className="font-mono text-xs text-active">{verticesAfter.toLocaleString()}</div>
+                </div>
+              </div>
+            )}
           </div>
           <Canvas
             camera={{ position: [3, 3, 3], fov: 45 }}
@@ -225,9 +297,9 @@ const ComparisonViewer = ({
               <directionalLight position={[10, 10, 5]} intensity={SHARED_LIGHTING.directional} />
               <pointLight position={[-10, -10, -10]} intensity={SHARED_LIGHTING.point} />
               <Center>
-                <Model url={optimizedObjectUrl || objectUrl} wireframe={false} />
+                <Model url={optimizedObjectUrl || objectUrl} wireframe={wireframe} clay={clay} />
               </Center>
-              <OrbitControls 
+              <OrbitControls
                 ref={rightControlsRef}
                 enableDamping={false}
                 onChange={() => syncCameras('right')}
@@ -243,7 +315,7 @@ const ComparisonViewer = ({
           onMouseDown={handleMouseDown}
         >
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-active flex items-center justify-center cursor-ew-resize"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-active flex items-center justify-center cursor-ew-resize shadow-brutal"
             onMouseDown={handleMouseDown}
           >
             <div className="flex gap-0.5">
@@ -255,21 +327,59 @@ const ComparisonViewer = ({
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 flex justify-between px-4 py-2 pointer-events-none">
-          <span className="font-ui text-xs text-muted bg-surface/80 px-2 py-1">◀ ORIGINAL</span>
-          <span className="font-ui text-xs text-active bg-surface/80 px-2 py-1">OPTIMIZED ▶</span>
+          <span className="font-ui text-[10px] text-muted bg-surface/80 px-2 py-1 tracking-widest uppercase">◀ ORIGINAL</span>
+          <span className="font-ui text-[10px] text-active bg-surface/80 px-2 py-1 tracking-widest uppercase">OPTIMIZED ▶</span>
         </div>
       </div>
 
       <div className="flex border-3 border-t-0 border-muted">
         <div className="flex-1 p-4 border-r-3 border-muted bg-surface">
-          <span className="font-ui text-xs text-muted">REDUCTION</span>
-          <div className="font-display text-3xl text-active tracking-brutal">
+          <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Reduction</span>
+          <div className="font-display text-3xl text-active tracking-brutal mt-1">
             -{reduction}%
           </div>
         </div>
-        <div className="flex-1 p-4 bg-surface">
-          <span className="font-ui text-xs text-muted">FILE</span>
-          <div className="font-ui text-sm text-reading truncate">
+        <div className="flex-1 p-4 border-r-3 border-muted bg-surface flex flex-col justify-center">
+          <span className="font-ui text-[10px] text-muted mb-3 uppercase tracking-widest">View Mode</span>
+          <div className="flex items-center gap-2">
+            <Switch 
+              id="wireframe-mode" 
+              checked={wireframe} 
+              onCheckedChange={(checked) => {
+                setWireframe(checked);
+                if (checked) setClay(false);
+              }} 
+              className="data-[state=checked]:bg-active"
+            />
+            <label 
+              htmlFor="wireframe-mode" 
+              className="font-ui text-[10px] text-reading cursor-pointer select-none uppercase tracking-wider"
+            >
+              Wireframe
+            </label>
+            
+            <div className="w-4" />
+            
+            <Switch 
+              id="clay-mode" 
+              checked={clay} 
+              onCheckedChange={(checked) => {
+                setClay(checked);
+                if (checked) setWireframe(false);
+              }} 
+              className="data-[state=checked]:bg-active"
+            />
+            <label 
+              htmlFor="clay-mode" 
+              className="font-ui text-[10px] text-reading cursor-pointer select-none uppercase tracking-wider"
+            >
+              Clay
+            </label>
+          </div>
+        </div>
+        <div className="flex-1 p-4 bg-surface max-w-[200px]">
+          <span className="font-ui text-[10px] text-muted uppercase tracking-widest">File</span>
+          <div className="font-ui text-[10px] text-reading truncate mt-2 uppercase">
             {file.name}
           </div>
         </div>
@@ -278,15 +388,27 @@ const ComparisonViewer = ({
       <div className="flex">
         <button
           onClick={onDownload}
-          className="flex-1 bg-active text-surface font-ui text-xl py-5 hover:bg-reading"
-          style={{ transition: 'none' }}
+          className="flex-1 bg-active text-surface font-display text-xl py-5 hover:bg-reading transition-none"
         >
           DOWNLOAD
         </button>
         <button
+          onClick={handleCenterModel}
+          className="border-3 border-l-0 border-muted bg-surface text-reading font-ui px-6 py-5 hover:bg-active hover:text-surface hover:border-active flex items-center justify-center transition-none"
+          title="Center Model"
+        >
+          <Focus className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleShare}
+          className="border-3 border-l-0 border-muted bg-surface text-reading font-ui px-6 py-5 hover:bg-active hover:text-surface hover:border-active flex items-center justify-center transition-none"
+          title="Share Link"
+        >
+          <Share2 className="w-5 h-5" />
+        </button>
+        <button
           onClick={onReset}
-          className="border-3 border-l-0 border-muted bg-surface text-muted font-ui text-xl px-6 py-5 hover:text-active hover:border-active"
-          style={{ transition: 'none' }}
+          className="border-3 border-l-0 border-muted bg-surface text-muted font-display text-xl px-8 py-5 hover:text-active hover:border-active transition-none"
         >
           RESET
         </button>

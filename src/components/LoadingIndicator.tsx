@@ -20,36 +20,14 @@ const LoadingIndicator = ({
   useEffect(() => {
     if (!catRef.current || !showCat) return;
 
-    const tl = gsap.timeline({ repeat: -1 });
-    
-    tl.to(catRef.current, {
-      rotation: -8,
-      duration: 0.7,
+    gsap.set(catRef.current, { rotation: 0 });
+
+    const tl = gsap.to(catRef.current, {
+      rotation: 10,
+      duration: 1.2,
       ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: 3,
-      duration: 0.7,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: -6,
-      duration: 0.5,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: 2,
-      duration: 0.6,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: -8,
-      duration: 0.5,
-      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
       transformOrigin: 'bottom center'
     });
 

@@ -4,6 +4,9 @@ export type OptimizeSettings = {
   decimateRatio: number;
   dracoLevel: number;
   textureQuality?: number;
+  weld?: boolean;
+  quantize?: boolean;
+  draco?: boolean;
 };
 
 export type OptimizeResponse = {
@@ -14,35 +17,68 @@ export type OptimizeResponse = {
   stats: {
     facesBefore: number;
     facesAfter: number;
+    verticesBefore: number;
+    verticesAfter: number;
   };
 };
 
-export async function optimizeFile(file: File, settings: OptimizeSettings): Promise<OptimizeResponse> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('settings', JSON.stringify(settings));
+export async function optimizeFile(
+  file: File, 
+  settings: OptimizeSettings, 
+  memberId?: string,
+  onProgress?: (percent: number) => void
+): Promise<OptimizeResponse> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('settings', JSON.stringify(settings));
 
-  try {
-    const response = await fetch('/api/optimize', {
-      method: 'POST',
-      body: formData,
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        const percent = Math.round((e.loaded / e.total) * 50);
+        onProgress(percent);
+      }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Optimization failed');
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const response = JSON.parse(xhr.responseText);
+          resolve(response);
+        } catch (err) {
+          reject(new Error('Invalid server response'));
+        }
+      } else {
+        let errorMessage = 'Optimization failed';
+        try {
+          const errorData = JSON.parse(xhr.responseText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {}
+        
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        reject(new Error(errorMessage));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      const msg = 'Network error during upload';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
+      reject(new Error(msg));
+    });
+    
+    xhr.addEventListener('abort', () => reject(new Error('Request aborted')));
+
+    xhr.open('POST', '/api/optimize');
+    if (memberId) {
+      xhr.setRequestHeader('Authorization', `Bearer ${memberId}`);
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Optimization error:', error);
-    toast({
-      title: 'Error',
-      description: error instanceof Error ? error.message : 'Failed to optimize file',
-      variant: 'destructive',
-    });
-    throw error;
-  }
+    xhr.send(formData);
+  });
 }
 
 export async function downloadFile(url: string, filename: string): Promise<void> {

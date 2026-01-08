@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
+import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import LoadingIndicator from './LoadingIndicator';
@@ -119,19 +119,16 @@ const Model = ({ url, onLoaded }: ModelProps) => {
     });
 
     const box = new THREE.Box3().setFromObject(scene);
-    const center = box.getCenter(new THREE.Vector3());
-    scene.position.sub(center);
-    
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2 / maxDim;
+    const scale = (2 / maxDim) * 0.9; 
     scene.scale.setScalar(scale);
     
     setIsModelReady(true);
     if (onLoaded) {
       onLoaded();
     }
-  }, [scene, onLoaded]);
+  }, [scene, url, onLoaded]);
 
   if (!isModelReady) {
     return null;
@@ -175,9 +172,21 @@ const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger }: S
 interface GLBViewerProps {
   file: File;
   onReset: () => void;
+  onReady?: () => void;
+  onProgress?: (percent: number) => void;
 }
 
-const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
+const ModelProgressReporter = ({ onProgress }: { onProgress?: (p: number) => void }) => {
+  const { progress } = useProgress();
+  useEffect(() => {
+    if (onProgress) {
+      onProgress(progress);
+    }
+  }, [progress, onProgress]);
+  return null;
+};
+
+const GLBViewer = ({ file, onReset, onReady, onProgress }: GLBViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -205,6 +214,9 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
 
   const handleModelLoaded = () => {
     setIsLoading(false);
+    if (onReady) {
+      onReady();
+    }
   };
 
   const handleCenterModel = () => {
@@ -270,6 +282,7 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
         style={{ background: 'hsl(273, 12%, 20%)' }}
       >
         <Suspense fallback={null}>
+          <ModelProgressReporter onProgress={onProgress} />
           <SceneContent 
             objectUrl={objectUrl} 
             onModelLoaded={handleModelLoaded}

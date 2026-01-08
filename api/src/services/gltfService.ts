@@ -1,4 +1,4 @@
-import { NodeIO, Primitive } from "@gltf-transform/core";
+import { NodeIO, Primitive, Accessor } from "@gltf-transform/core";
 import type { Document, JSONDocument } from "@gltf-transform/core";
 import { KHRDracoMeshCompression } from "@gltf-transform/extensions";
 import { draco, quantize, simplify, textureCompress, weld } from "@gltf-transform/functions";
@@ -9,11 +9,16 @@ export type OptimizeOptions = {
   decimateRatio: number;
   dracoLevel: number;
   textureQuality?: number;
+  weld?: boolean;
+  quantize?: boolean;
+  draco?: boolean;
 };
 
 export type OptimizeStats = {
   facesBefore: number;
   facesAfter: number;
+  verticesBefore: number;
+  verticesAfter: number;
 };
 
 class InvalidModelError extends Error {
@@ -114,6 +119,22 @@ function countFaces(document: Document): number {
   return faces;
 }
 
+function countVertices(document: Document): number {
+  const accessors = new Set<Accessor>();
+  for (const mesh of document.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const position = prim.getAttribute("POSITION");
+      if (position) accessors.add(position);
+    }
+  }
+
+  let vertices = 0;
+  for (const accessor of accessors) {
+    vertices += accessor.getCount();
+  }
+  return vertices;
+}
+
 function dracoLevelToEncodeSpeed(dracoLevel: number): number {
   return Math.max(0, Math.min(10, 10 - Math.round(dracoLevel)));
 }
@@ -133,9 +154,12 @@ export async function processGlb(
   }
 
   const facesBefore = countFaces(document);
+  const verticesBefore = countVertices(document);
 
   try {
-    await document.transform(weld());
+    if (options.weld !== false) {
+      await document.transform(weld());
+    }
 
     if (options.decimateRatio < 1) {
       await document.transform(
@@ -148,6 +172,7 @@ export async function processGlb(
     }
 
     const facesAfter = countFaces(document);
+    const verticesAfter = countVertices(document);
 
     if (options.textureQuality) {
       await document.transform(
@@ -157,15 +182,19 @@ export async function processGlb(
       );
     }
 
-    await document.transform(quantize());
+    if (options.quantize !== false) {
+      await document.transform(quantize());
+    }
 
-    await document.transform(
-      draco({
-        method: "edgebreaker",
-        encodeSpeed: dracoLevelToEncodeSpeed(options.dracoLevel),
-        decodeSpeed: 10,
-      }),
-    );
+    if (options.draco !== false) {
+      await document.transform(
+        draco({
+          method: "edgebreaker",
+          encodeSpeed: dracoLevelToEncodeSpeed(options.dracoLevel),
+          decodeSpeed: 10,
+        }),
+      );
+    }
 
     const optimized = await io.writeBinary(document);
 
@@ -174,6 +203,8 @@ export async function processGlb(
       stats: {
         facesBefore,
         facesAfter,
+        verticesBefore,
+        verticesAfter,
       },
     };
   } catch (err) {

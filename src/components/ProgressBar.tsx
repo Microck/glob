@@ -30,26 +30,14 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
   useEffect(() => {
     if (!catRef.current) return;
 
-    const tl = gsap.timeline({ repeat: -1, yoyo: true });
-    
     gsap.set(catRef.current, { rotation: 0 });
 
-    tl.to(catRef.current, {
-      rotation: -10,
-      duration: 0.8,
-      ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
+    const tl = gsap.to(catRef.current, {
       rotation: 10,
-      duration: 1.6,
+      duration: 1.2,
       ease: 'sine.inOut',
-      transformOrigin: 'bottom center'
-    })
-    .to(catRef.current, {
-      rotation: 0,
-      duration: 0.8,
-      ease: 'sine.inOut',
+      repeat: -1,
+      yoyo: true,
       transformOrigin: 'bottom center'
     });
 
