@@ -14,10 +14,10 @@ const Pricing = () => {
             </div>
             <ul className="flex-1 space-y-4 mb-8">
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
-                <Check className="w-4 h-4 text-active" /> 50MB File Limit
+                <Check className="w-4 h-4 text-active" /> 300MB File Limit
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
-                <Check className="w-4 h-4 text-active" /> 1 Hour Asset Retention
+                <Check className="w-4 h-4 text-active" /> Instant Purge (Unless Shared)
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
                 <Check className="w-4 h-4 text-active" /> Standard Optimization

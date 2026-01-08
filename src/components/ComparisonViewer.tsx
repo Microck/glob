@@ -113,11 +113,15 @@ const ComparisonViewer = ({
   
   const { toast } = useToast();
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!optimizedUrl) return;
     const id = optimizedUrl.split('/').pop();
     const shareUrl = `${window.location.origin}/share/${id}`;
     
+    try {
+      await fetch(`/api/activate-share/${id}`, { method: 'POST' });
+    } catch {}
+
     navigator.clipboard.writeText(shareUrl);
     toast({
       title: "LINK COPIED",

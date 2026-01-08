@@ -114,10 +114,10 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
   const memberId = req.headers["x-member-id"] as string;
   const access = await getAccessLevel(memberId);
   
-  const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
+  const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 10 * 60 * 1000;
 
   const originalSize = req.file.size;
-  const sizeLimit = access.hasAccess ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
+  const sizeLimit = access.hasAccess ? 500 * 1024 * 1024 : 300 * 1024 * 1024;
 
   if (originalSize > sizeLimit) {
     await fs.unlink(req.file.path).catch(() => undefined);
@@ -216,6 +216,24 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
     return res.redirect(signedUrl);
   } catch {
     return res.status(404).json({ status: "error", message: "File not found" });
+  }
+});
+
+optimizeRouter.post("/activate-share/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  const metaPath = path.join(OPTIMIZED_DIR, `${id}.json`);
+
+  try {
+    const metaContent = await fs.readFile(metaPath, 'utf-8');
+    const metadata = JSON.parse(metaContent);
+    
+    const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    metadata.expiresAt = newExpiresAt;
+    
+    await fs.writeFile(metaPath, JSON.stringify(metadata));
+    return res.json({ status: "success", expiresAt: newExpiresAt });
+  } catch {
+    return res.status(404).json({ status: "error", message: "Asset not found" });
   }
 });
 

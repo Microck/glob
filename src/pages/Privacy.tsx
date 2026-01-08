@@ -20,7 +20,7 @@ const PrivacyPolicy = () => {
               When you upload a file for optimization, it is processed on my secure backend. I use temporary storage to hold the files during the transition:
             </p>
             <ul className="space-y-2 ml-4 text-xs font-bold uppercase">
-              <li><span className="text-active">Free Tier:</span> Deleted after 1 hour.</li>
+              <li><span className="text-active">Free Tier:</span> Deleted after 10 minutes (Extended if shared).</li>
               <li><span className="text-active">globber Tier:</span> Deleted after 48 hours.</li>
             </ul>
           </section>
