@@ -430,6 +430,19 @@ const DebugMenu = ({
               <option value="curtain">CURTAIN</option>
               <option value="blur-snap">BLUR SNAP</option>
               <option value="squeeze">SQUEEZE</option>
+              <option value="scanline">SCANLINE</option>
+              <option value="pixelate">PIXELATE</option>
+              <option value="glitch-shake">GLITCH SHAKE</option>
+              <option value="hydraulic">HYDRAULIC</option>
+              <option value="rotate-snap">ROTATE SNAP</option>
+              <option value="perspective-tilt">PERSPECTIVE TILT</option>
+              <option value="stomp">STOMP</option>
+              <option value="slide-up">SLIDE UP</option>
+              <option value="slide-down">SLIDE DOWN</option>
+              <option value="zoom-in">ZOOM IN</option>
+              <option value="flip-x">FLIP X</option>
+              <option value="flip-y">FLIP Y</option>
+              <option value="jitter">JITTER</option>
             </select>
             <button
               onClick={onReplay}

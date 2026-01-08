@@ -3,13 +3,9 @@ import { Upload } from 'lucide-react';
 import gsap from 'gsap';
 
 export type AnimationType = 
-  | 'glitch-slide' 
-  | 'elastic-pop' 
-  | 'flash-bang' 
-  | 'cinema-scope' 
-  | 'curtain' 
-  | 'blur-snap' 
-  | 'squeeze';
+  | 'glitch-slide' | 'elastic-pop' | 'flash-bang' | 'cinema-scope' | 'curtain' | 'blur-snap' | 'squeeze'
+  | 'scanline' | 'pixelate' | 'glitch-shake' | 'hydraulic' | 'rotate-snap' | 'perspective-tilt'
+  | 'stomp' | 'slide-up' | 'slide-down' | 'zoom-in' | 'flip-x' | 'flip-y' | 'jitter';
 
 interface DropZoneProps {
   onFileSelect: (file: File) => void;
@@ -71,6 +67,85 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = '
           gsap.fromTo(el,
             { scaleX: 1.5, scaleY: 0.1, opacity: 0 },
             { scaleX: 1, scaleY: 1, opacity: 1, duration: 0.6, ease: 'elastic.out(1, 0.3)' }
+          );
+          break;
+        case 'scanline':
+          gsap.fromTo(el,
+            { clipPath: 'inset(0 0 100% 0)' },
+            { clipPath: 'inset(0 0 0% 0)', duration: 0.8, ease: 'steps(5)' }
+          );
+          break;
+        case 'pixelate':
+          gsap.fromTo(el,
+            { filter: 'blur(10px) contrast(200%)', opacity: 0 },
+            { filter: 'blur(0px) contrast(100%)', opacity: 1, duration: 0.6, ease: 'power2.out' }
+          );
+          break;
+        case 'glitch-shake':
+          gsap.fromTo(el,
+            { x: 0 },
+            { x: 0, duration: 0.5, ease: 'rough({ template: none.out, strength: 1, points: 20, taper: "none", randomize: true, clamp: false })' }
+          );
+          gsap.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.1 });
+          break;
+        case 'hydraulic':
+          gsap.fromTo(el,
+            { scaleY: 0, transformOrigin: 'center' },
+            { scaleY: 1, duration: 0.6, ease: 'circ.out' }
+          );
+          break;
+        case 'rotate-snap':
+          gsap.fromTo(el,
+            { rotation: 15, opacity: 0, scale: 0.8 },
+            { rotation: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.7)' }
+          );
+          break;
+        case 'perspective-tilt':
+          gsap.fromTo(el,
+            { rotationX: 45, y: 50, opacity: 0, transformPerspective: 1000 },
+            { rotationX: 0, y: 0, opacity: 1, duration: 0.8, ease: 'expo.out' }
+          );
+          break;
+        case 'stomp':
+          gsap.fromTo(el,
+            { scale: 2, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.4, ease: 'bounce.out' }
+          );
+          break;
+        case 'slide-up':
+          gsap.fromTo(el,
+            { y: 100, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+          break;
+        case 'slide-down':
+          gsap.fromTo(el,
+            { y: -100, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+          );
+          break;
+        case 'zoom-in':
+          gsap.fromTo(el,
+            { scale: 0.5, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.7)' }
+          );
+          break;
+        case 'flip-x':
+          gsap.fromTo(el,
+            { rotationX: 90, opacity: 0 },
+            { rotationX: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.5)' }
+          );
+          break;
+        case 'flip-y':
+          gsap.fromTo(el,
+            { rotationY: 90, opacity: 0 },
+            { rotationY: 0, opacity: 1, duration: 0.6, ease: 'back.out(1.5)' }
+          );
+          break;
+        case 'jitter':
+          gsap.fromTo(el,
+            { opacity: 0, scale: 0.9 },
+            { opacity: 1, scale: 1, duration: 0.5, ease: 'steps(5)' }
           );
           break;
       }

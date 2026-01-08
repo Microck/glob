@@ -1,22 +1,32 @@
-# Handoff: Animation Selector
+# Handoff: Extended Animation Library
 
 ## Completed Work
-- **Animation Selector**: Added a "UI ANIMATIONS" section to the Debug Menu (Ctrl+`).
-- **Multiple Options**: Implemented 7 distinct brutalist entrance animations for the DropZone:
-  1. `GLITCH SLIDE` (Default)
-  2. `ELASTIC POP`
-  3. `FLASH BANG`
-  4. `CINEMA SCOPE`
-  5. `CURTAIN`
-  6. `BLUR SNAP`
-  7. `SQUEEZE`
-- **Interactive Preview**: Added "REPLAY ANIMATION" button to test them live.
+- **Animation Library**: Expanded `DropZone` animations to **20 presets**:
+  - `GLITCH SLIDE` (Default)
+  - `ELASTIC POP`
+  - `FLASH BANG`
+  - `CINEMA SCOPE`
+  - `CURTAIN`
+  - `BLUR SNAP`
+  - `SQUEEZE`
+  - `SCANLINE` (New)
+  - `PIXELATE` (New)
+  - `GLITCH SHAKE` (New)
+  - `HYDRAULIC` (New)
+  - `ROTATE SNAP` (New)
+  - `PERSPECTIVE TILT` (New)
+  - `STOMP` (New)
+  - `SLIDE UP/DOWN` (New)
+  - `ZOOM IN` (New)
+  - `FLIP X/Y` (New)
+  - `JITTER` (New)
+- **Selector**: Updated Debug Menu to support all new options.
+- **Replay**: Verified replay functionality works with new options.
 
 ## Current State
-- **Branch**: `main` (will merge latest features).
+- **Branch**: `main` (merging latest).
 - **Build**: verified passing.
 
 ## Next Steps
-- Use the selector to choose the final animation preference.
-- Set the chosen animation as default in `Index.tsx` (currently 'glitch-slide').
-- Remove the selector from DebugMenu once finalized (or keep it for dev).
+- Finalize the preferred animation and hardcode it if desired (or keep selector).
+- Proceed with `todo.md` items (faces count, wireframe).
