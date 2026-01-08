@@ -93,8 +93,8 @@ const ComparisonViewer = ({
   useEffect(() => {
     if (mainContainerRef.current) {
       gsap.fromTo(mainContainerRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+        { opacity: 0, scale: 1.02, filter: 'blur(10px)' },
+        { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.4, ease: 'circ.out' }
       );
     }
   }, []);

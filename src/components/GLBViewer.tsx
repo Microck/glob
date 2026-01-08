@@ -197,8 +197,8 @@ const GLBViewer = ({ file, onReset }: GLBViewerProps) => {
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(containerRef.current,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }
+        { scale: 0.95, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: 'elastic.out(1, 0.7)' }
       );
     }
   }, []);

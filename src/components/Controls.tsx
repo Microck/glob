@@ -29,8 +29,8 @@ const Controls = ({
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(containerRef.current,
-        { opacity: 0, y: 10 },
-        { opacity: 1, y: 0, duration: 0.4, delay: 0.2, ease: 'power2.out' }
+        { y: 50, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, delay: 0.4, ease: 'expo.out' }
       );
     }
   }, []);

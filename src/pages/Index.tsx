@@ -8,7 +8,6 @@ import ProgressBar from '@/components/ProgressBar';
 import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
 import DebugMenu from '@/components/DebugMenu';
-import TypewriterText from '@/components/TypewriterText';
 import { optimizeFile, downloadFile } from '@/lib/api';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
@@ -177,7 +176,7 @@ const Index = () => {
               color: '#E7D9D5'
             }}
           >
-            <TypewriterText text="glob" />
+            glob
           </h1>
         </div>
       </header>
