@@ -1,13 +1,14 @@
 import { useState, useCallback } from 'react';
 import NoiseOverlay from '@/components/NoiseOverlay';
 import GridBackground from '@/components/GridBackground';
-import DropZone from '@/components/DropZone';
+import DropZone, { AnimationType } from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
 import Controls from '@/components/Controls';
 import ProgressBar from '@/components/ProgressBar';
 import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
 import DebugMenu from '@/components/DebugMenu';
+import TypewriterText from '@/components/TypewriterText';
 import { optimizeFile, downloadFile } from '@/lib/api';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
@@ -35,6 +36,8 @@ const Index = () => {
   const [facesBefore, setFacesBefore] = useState(0);
   const [facesAfter, setFacesAfter] = useState(0);
   const [isDebugMode, setIsDebugMode] = useState(false);
+  const [animationType, setAnimationType] = useState<AnimationType>('glitch-slide');
+  const [replayTrigger, setReplayTrigger] = useState(0);
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
@@ -185,9 +188,11 @@ const Index = () => {
         {appState === 'idle' && (
           <div className="w-full max-w-4xl flex flex-col items-center">
             <DropZone 
+              key={replayTrigger}
               onFileSelect={handleFileSelect} 
               isLoading={isFileLoading}
               loadProgress={fileLoadProgress}
+              animationType={animationType}
             />
             <div className="mt-0 w-full">
               <Controls
@@ -299,7 +304,16 @@ const Index = () => {
         </a>
       </footer>
 
-      <DebugMenu appState={appState} onStateChange={handleDebugStateChange} />
+      <DebugMenu 
+        appState={appState} 
+        onStateChange={handleDebugStateChange}
+        animationType={animationType}
+        onAnimationChange={setAnimationType}
+        onReplay={() => {
+          setAppState('idle');
+          setReplayTrigger(prev => prev + 1);
+        }}
+      />
     </div>
   );
 };
