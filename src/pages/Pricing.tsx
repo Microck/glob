@@ -10,17 +10,17 @@ const Pricing = () => {
 
   const [glowIntensity, setGlowIntensity] = useState(0.08);
   const [gradientIntensity, setGradientIntensity] = useState(0.02);
-  const [patternOpacity, setPatternOpacity] = useState(0.03);
-  const [patternSize, setPatternSize] = useState(40);
-  const [patternSpacing, setPatternSpacing] = useState(120);
-  const [patternColor, setPatternColor] = useState("#E7D9D5");
+  const [patternOpacity, setPatternOpacity] = useState(0.2);
+  const [patternSize, setPatternSize] = useState(20);
+  const [patternSpacing, setPatternSpacing] = useState(76);
+  const [patternColor, setPatternColor] = useState("#342d39");
   const [glowColor, setGlowColor] = useState("#FC6E83");
-  const [animDuration, setAnimDuration] = useState(30);
-  const [patternRotation, setPatternRotation] = useState(0);
-  const [patternDriftX, setPatternDriftX] = useState(-100);
+  const [animDuration, setAnimDuration] = useState(4);
+  const [patternRotation, setPatternRotation] = useState(347);
+  const [patternDriftX, setPatternDriftX] = useState(-127);
   const [patternDriftY, setPatternDriftY] = useState(-100);
-  const [glowX, setGlowX] = useState(90);
-  const [glowY, setGlowY] = useState(10);
+  const [glowX, setGlowX] = useState(99);
+  const [glowY, setGlowY] = useState(100);
 
   const getPawPattern = (color: string, opacity: number, size: number, rotation: number) => {
     const encodedColor = encodeURIComponent(color);
@@ -84,7 +84,7 @@ const Pricing = () => {
               }}
             />
 
-            <div className="absolute top-0 right-0 z-10">
+            <div className="absolute top-0 right-0 z-[5]">
               <img 
                 src="/finished.svg" 
                 alt="Recommended" 
@@ -144,7 +144,7 @@ const Pricing = () => {
           </div>
           <div className="flex flex-col gap-1">
             <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Pattern Opac.</span>
-            <input type="range" min="0" max="0.2" step="0.01" value={patternOpacity} onChange={(e) => setPatternOpacity(Number(e.target.value))} className="accent-active" />
+            <input type="range" min="0" max="0.5" step="0.01" value={patternOpacity} onChange={(e) => setPatternOpacity(Number(e.target.value))} className="accent-active" />
           </div>
           <div className="flex flex-col gap-1">
             <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Paw Size</span>
