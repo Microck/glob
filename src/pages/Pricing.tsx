@@ -37,7 +37,7 @@ const Pricing = () => {
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-15.6px, -66.4px)',
+                  transform: 'translate(-15.6px, -61.4px)',
                   width: '105.3px',
                   height: '59.4px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
@@ -46,7 +46,7 @@ const Pricing = () => {
             </div>
             <div className="flex justify-between items-start mb-6">
               <h2 className="font-display text-2xl text-active uppercase tracking-wider">globber</h2>
-              <div className="font-mono text-xl text-active">€5<span className="text-xs">/mo</span></div>
+              <div className="font-mono text-xl text-active">$5<span className="text-xs">/mo</span></div>
             </div>
             <ul className="flex-1 space-y-4 mb-8">
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">

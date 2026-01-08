@@ -3,62 +3,55 @@ import PageLayout from '@/components/PageLayout';
 const Terms = () => {
   return (
     <PageLayout isCentered={false}>
-      <div className="max-w-2xl mx-auto">
-        <h1 className="font-display text-4xl mb-8 tracking-brutal uppercase">Terms of Service</h1>
+      <div className="max-w-5xl mx-auto">
+        <h1 className="font-display text-4xl mb-12 tracking-tight uppercase border-b-3 border-active pb-4 inline-block">Terms</h1>
         
-        <div className="space-y-10 font-ui text-reading">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12 font-ui text-reading">
           <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">1. The Agreement</h2>
-            <p className="leading-relaxed">
-              By accessing or using glob, you agree to be bound by these Terms of Service. If you do not agree with any part of these terms, you must immediately stop using the service. I operate on a logic-first basis; expectations should match the technical capabilities of the tools provided.
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">1. The Agreement</h2>
+            <p className="leading-relaxed text-sm">
+              By using glob, you agree to these Terms. If you do not agree, stop using the service. I operate on a logic-first basis; expectations should match the technical capabilities of the tools provided.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">2. Usage Rights & Ownership</h2>
-            <p className="leading-relaxed mb-4">
-              You retain 100% ownership of any 3D models you upload. glob does not claim any intellectual property rights over your geometry or textures.
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">2. Ownership</h2>
+            <p className="leading-relaxed text-sm mb-4">
+              You retain 100% ownership of your models. glob does not claim any rights over your geometry.
             </p>
-            <p className="leading-relaxed font-bold text-active uppercase">
-              Your models. Your pixels. Your responsibility.
+            <p className="text-xs font-bold text-active uppercase">
+              Your models. Your polygons. Your responsibility.
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">3. Service Limitations</h2>
-            <p className="leading-relaxed mb-4">
-              Optimization is a destructive process. Decimation, quantization, and texture compression will alter your model's data. 
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">3. Limitations</h2>
+            <p className="leading-relaxed text-sm mb-4">
+              Optimization is destructive. Decimation and compression will alter your model's data. 
             </p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>I am not responsible for broken topology or lost details.</li>
-              <li>Always keep local backups of your original models.</li>
-              <li>The "approximate" targets in Simple Mode are just that: approximate.</li>
+            <ul className="space-y-1 text-xs font-bold uppercase opacity-80">
+              <li>• Not responsible for broken topology.</li>
+              <li>• Keep local backups of original files.</li>
+              <li>• Simple Mode targets are approximate.</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">4. globber Subscription</h2>
-            <p className="leading-relaxed mb-4">
-              Subscribing to the <span className="text-active font-bold italic">globber</span> tier grants you increased limits and extended file retention.
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">4. globber Tier</h2>
+            <p className="leading-relaxed text-sm mb-4">
+              The <span className="text-active font-bold italic">globber</span> tier grants increased limits.
             </p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Subscriptions are processed via Polar.sh and are subject to their billing terms.</li>
-              <li>I reserve the right to modify tier limits based on infrastructure costs.</li>
-              <li>Abuse of high-priority queues or storage may result in temporary suspension.</li>
+            <ul className="space-y-1 text-xs font-bold uppercase opacity-80">
+              <li>• Processed via Polar.sh.</li>
+              <li>• I reserve the right to modify limits.</li>
+              <li>• Abuse may result in suspension.</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">5. Disclaimer of Warranty</h2>
-            <p className="leading-relaxed bg-surface p-4 border-l-4 border-active italic">
-              glob is provided "AS IS", without warranty of any kind, express or implied. I do not guarantee that the service will be uninterrupted or error-free. You use these tools at your own risk.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">6. Changes to Terms</h2>
-            <p className="leading-relaxed">
-              I reserve the right to update these terms at any time. Your continued use of the service after such changes constitutes acceptance of the new terms.
+          <section className="md:col-span-2">
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">5. Disclaimer</h2>
+            <p className="leading-relaxed text-xs bg-surface p-4 border-3 border-muted italic">
+              glob is provided "AS IS", without warranty of any kind. You use these tools at your own risk.
             </p>
           </section>
         </div>

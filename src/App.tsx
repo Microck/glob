@@ -22,7 +22,34 @@ if (!PUBLISHABLE_KEY) {
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY || ""}>
+  <ClerkProvider 
+    publishableKey={PUBLISHABLE_KEY || ""}
+    appearance={{
+      variables: {
+        colorPrimary: "#FC6E83",
+        colorText: "#E7D9D5",
+        colorBackground: "#1A161E",
+        colorInputBackground: "#1A161E",
+        colorInputText: "#E7D9D5",
+        borderRadius: "0",
+        fontFamily: "Chakra Petch",
+      },
+      elements: {
+        card: "bg-surface border-3 border-muted shadow-brutal",
+        headerTitle: "font-display uppercase tracking-tight",
+        headerSubtitle: "font-ui uppercase opacity-60",
+        socialButtonsBlockButton: "rounded-none border-2 border-muted hover:border-active transition-none",
+        formButtonPrimary: "rounded-none bg-active hover:bg-reading transition-none uppercase font-bold",
+        footerActionLink: "text-active hover:underline",
+        identityPreviewText: "text-reading",
+        identityPreviewEditButtonIcon: "text-active",
+        formFieldInput: "rounded-none border-2 border-muted focus:border-active transition-none bg-background",
+        userButtonPopoverCard: "bg-surface border-3 border-muted rounded-none",
+        userButtonPopoverActionButtonText: "font-ui uppercase tracking-widest",
+        userButtonPopoverFooter: "hidden"
+      }
+    }}
+  >
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
