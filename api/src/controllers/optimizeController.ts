@@ -163,7 +163,7 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
 
     const downloadUrl = `${req.protocol}://${req.get("host")}/api/download/${jobId}`;
 
-    if (memberId && req.file) {
+    if (memberId && req.file && access.hasAccess) {
       await saveOptimization({
         userId: memberId,
         originalName: req.file.originalname,
@@ -172,6 +172,9 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
         stats,
         downloadUrl
       });
+    }
+
+    if (memberId) {
       await ingestOptimization(memberId).catch(() => undefined);
     }
 
