@@ -17,8 +17,8 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0 }: DropZoneProps) 
   useEffect(() => {
     if (containerRef.current) {
       gsap.fromTo(containerRef.current,
-        { clipPath: 'inset(0 100% 0 0)' },
-        { clipPath: 'inset(0 0% 0 0)', duration: 1, ease: 'expo.out', delay: 0.2 }
+        { x: -20, opacity: 0, skewX: 20 },
+        { x: 0, opacity: 1, skewX: 0, duration: 0.4, ease: 'back.out(1.7)' }
       );
     }
   }, []);
