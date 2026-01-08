@@ -40,7 +40,7 @@ This guide covers the necessary steps to set up the authentication, database, an
 1.  **Create an Account**: Sign up at [Polar.sh](https://polar.sh/).
 2.  **Create a Product**:
     *   Create a product named "globber".
-    *   Set the price (e.g., $9/mo).
+    *   Set the price (e.g., $5/mo).
 3.  **Configure Webhooks**:
     *   Go to **Developer Settings > Webhooks**.
     *   Add a new endpoint pointing to: `https://your-api-domain.com/api/webhooks/polar`.
