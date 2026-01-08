@@ -1,6 +1,6 @@
 # HOWTO: Setting up glob infrastructure
 
-This guide covers the necessary steps to set up the authentication, database, and payment systems for the **glob** application.
+This guide covers the necessary steps to set up the authentication, database, and payment systems for the **glob** application. I use these services to keep the platform free and high-performance.
 
 ---
 
@@ -28,7 +28,7 @@ This guide covers the necessary steps to set up the authentication, database, an
 3.  **Get Credentials**:
     *   Go to **Project Settings > API**.
     *   Copy the **Project URL**.
-    *   Copy the **service_role** secret key (needed for backend writes).
+    *   Copy the **service_role** secret key (needed for my backend writes).
 4.  **Environment Variables**:
     *   Both: Add `NEXT_PUBLIC_SUPABASE_URL`.
     *   Backend: Add `SUPABASE_SERVICE_ROLE_KEY`.
@@ -44,7 +44,7 @@ This guide covers the necessary steps to set up the authentication, database, an
 3.  **Configure Webhooks**:
     *   Go to **Developer Settings > Webhooks**.
     *   Add a new endpoint pointing to: `https://your-api-domain.com/api/webhooks/polar`.
-    *   For local testing, use a tool like [ngrok](https://ngrok.com/) to tunnel your local port (default 3001) and use that URL.
+    *   For local testing, I use a tool like [ngrok](https://ngrok.com/) to tunnel my local port (default 3001) and use that URL.
     *   Select events: `subscription.created`, `subscription.updated`.
 4.  **Get Webhook Secret**: Copy the **Webhook Secret** (starts with `whsec_`).
 5.  **Environment Variables**:
@@ -98,4 +98,5 @@ R2_BUCKET_NAME=glob-models
 1.  **Install Dependencies**: `npm install` in the root and `npm install` in the `api` folder.
 2.  **Start API**: `npm run api:dev`
 3.  **Start Frontend**: `npm run dev`
+
 

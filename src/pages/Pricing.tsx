@@ -46,7 +46,7 @@ const Pricing = () => {
             </div>
             <div className="flex justify-between items-start mb-6">
               <h2 className="font-display text-2xl text-active uppercase tracking-wider">globber</h2>
-              <div className="font-mono text-xl text-active">$9<span className="text-xs">/mo</span></div>
+              <div className="font-mono text-xl text-active">€5<span className="text-xs">/mo</span></div>
             </div>
             <ul className="flex-1 space-y-4 mb-8">
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
@@ -63,7 +63,7 @@ const Pricing = () => {
               </li>
             </ul>
             <a 
-              href="https://polar.sh/your-product-link" 
+              href="https://polar.sh/micr.dev/products/99118e8e-5aaa-4196-91f9-686e8e1d7e75" 
               target="_blank" 
               rel="noreferrer"
               className="w-full bg-active text-surface font-ui text-sm py-3 text-center hover:bg-reading transition-none font-bold"

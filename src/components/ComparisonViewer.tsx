@@ -121,7 +121,7 @@ const ComparisonViewer = ({
     navigator.clipboard.writeText(shareUrl);
     toast({
       title: "LINK COPIED",
-      description: "Share link copied to clipboard (expires in 1h)",
+      description: "Share link copied to clipboard (expires in 48 hours for globbers)",
     });
   };
 

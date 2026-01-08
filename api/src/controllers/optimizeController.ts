@@ -12,6 +12,7 @@ import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations } from "../services/dbService.js";
 import { uploadToR2, getDownloadUrl, deleteFromR2 } from "../services/r2Service.js";
+import { ingestOptimization } from "../services/polarService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,7 +85,15 @@ setInterval(async () => {
       try {
         const metaContent = await fs.readFile(metaPath, 'utf-8');
         const metadata = JSON.parse(metaContent);
-        if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+        
+        const now = new Date();
+        const expiresAt = metadata.expiresAt ? new Date(metadata.expiresAt) : null;
+        const createdAt = metadata.createdAt ? new Date(metadata.createdAt) : null;
+        
+        const isExpired = expiresAt && expiresAt < now;
+        const isSafetyPurge = createdAt && (now.getTime() - createdAt.getTime()) > 2 * 24 * 60 * 60 * 1000;
+
+        if (isExpired || isSafetyPurge) {
           if (metadata.storageKey) {
             await deleteFromR2(metadata.storageKey).catch(() => undefined);
           }
@@ -104,7 +113,8 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
 
   const memberId = req.headers["x-member-id"] as string;
   const access = await getAccessLevel(memberId);
-  const expirationMs = access.hasAccess ? 48 * 60 * 60 * 1000 : 60 * 60 * 1000;
+  
+  const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 60 * 60 * 1000;
 
   const originalSize = req.file.size;
   const sizeLimit = access.hasAccess ? 500 * 1024 * 1024 : 50 * 1024 * 1024;
@@ -162,6 +172,7 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
         stats,
         downloadUrl
       });
+      await ingestOptimization(memberId).catch(() => undefined);
     }
 
     return res.json({

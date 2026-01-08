@@ -14,7 +14,7 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view own profile" 
 ON profiles FOR SELECT 
-USING (id = auth.uid());
+USING (id = auth.uid()::text);
 
 CREATE TABLE optimizations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,4 +31,4 @@ ALTER TABLE optimizations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view own optimizations" 
 ON optimizations FOR SELECT 
-USING (user_id = auth.uid());
+USING (user_id = auth.uid()::text);

@@ -31,7 +31,7 @@ const PrivacyPolicy = () => {
           <section>
             <h2 className="text-xl font-bold mb-4 uppercase tracking-widest border-b-2 border-muted pb-2">3. Authentication & Account</h2>
             <p className="leading-relaxed">
-              I use <span className="font-bold">Memberstack</span> for authentication and <span className="font-bold">Supabase</span> for storing user profile metadata. I only store what is necessary to manage your subscription tier and show your recent optimization history. I do not sell or share your account information with third parties.
+              I use <span className="font-bold">Clerk</span> for authentication and <span className="font-bold">Supabase</span> for storing user profile metadata. I only store what is necessary to manage your subscription tier and show your recent optimization history. I do not sell or share your account information with third parties.
             </p>
           </section>
 

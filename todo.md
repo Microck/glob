@@ -20,11 +20,12 @@
    - Implemented expiration logic (backend), Share page (frontend), and Share button.
 
 6. [x] **Premium Accounts**
-   - Implemented user authentication with Memberstack.
+   - Implemented user authentication with Clerk.
    - Added tier-based limits:
      - **Free**: 50MB file limit, 1h share links.
-     - **Pro**: 500MB file limit, 48h share links, permanent history.
+     - **globber**: 500MB file limit, 48h share links, permanent history.
    - Added "Recent Optimizations" history for logged-in users.
+   - Integrated with Polar.sh for usage-based billing and subscriptions.
 
 7. [x] **Simplified Compression Strategy**
    - Replace complex sliders with a simple choice:
