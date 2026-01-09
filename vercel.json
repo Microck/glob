@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "functions": {
+    "api/vercel.ts": {
+      "maxDuration": 60
+    }
+  },
   "builds": [
     {
       "src": "package.json",
