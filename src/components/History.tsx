@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Download, Box, Trash } from "lucide-react";
+import { Download, Box, Trash, Share2 } from "lucide-react";
 import { deleteOptimization, getStorageUsage } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface Optimization {
   id: string;
@@ -13,6 +14,7 @@ interface Optimization {
 }
 
 const History = ({ userId }: { userId: string }) => {
+  const { toast } = useToast();
   const [history, setHistory] = useState<Optimization[]>([]);
   const [storageUsage, setStorageUsage] = useState<{ used: number; total: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +44,19 @@ const History = ({ userId }: { userId: string }) => {
 
     if (userId) fetchData();
   }, [userId]);
+
+  const handleShare = (downloadUrl: string) => {
+    const jobId = downloadUrl.split('/').pop();
+    if (!jobId) return;
+    
+    const shareUrl = `${window.location.origin}/share/${jobId}`;
+    navigator.clipboard.writeText(shareUrl);
+    
+    toast({
+      title: "LINK COPIED",
+      description: "Share link is ready to paste.",
+    });
+  };
 
   const handleDelete = async (id: string, size: number) => {
     if (!confirm("PERMANENTLY DELETE?")) return;
@@ -110,6 +125,13 @@ const History = ({ userId }: { userId: string }) => {
               </div>
             </div>
             <div className="flex gap-2">
+              <button
+                onClick={() => handleShare(item.download_url)}
+                className="p-2 border-2 border-muted hover:border-active hover:text-active transition-none"
+                title="Copy Share Link"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
               <a 
                 href={item.download_url} 
                 className="p-2 border-2 border-muted hover:border-active hover:text-active transition-none"
