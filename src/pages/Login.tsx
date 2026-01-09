@@ -1,3 +1,4 @@
+import { SignIn } from "@clerk/clerk-react";
 import PageLayout from '@/components/PageLayout';
 import { Link } from 'react-router-dom';
 
@@ -22,8 +23,6 @@ const Login = () => {
     );
   }
 
-  const { SignIn } = require("@clerk/clerk-react");
-  
   return (
     <PageLayout showContentOnly>
       <div className="flex flex-col items-center justify-center">

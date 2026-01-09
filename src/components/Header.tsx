@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { LogIn } from "lucide-react";
+import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/clerk-react";
 
 const CLERK_ENABLED = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
@@ -15,8 +16,6 @@ const ClerkAuthSection = () => {
       </Link>
     );
   }
-
-  const { SignedIn, SignedOut, UserButton, SignInButton } = require("@clerk/clerk-react");
 
   return (
     <>
