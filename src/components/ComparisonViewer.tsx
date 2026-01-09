@@ -4,8 +4,14 @@ import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
 import { Switch } from '@/components/ui/switch';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Share2, Focus } from 'lucide-react';
+import { Share2, Focus, ChevronLeft, ChevronRight, List, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ModelProps {
   url: string;
@@ -84,6 +90,13 @@ interface ComparisonViewerProps {
   facesAfter?: number;
   verticesBefore?: number;
   verticesAfter?: number;
+  // Bulk mode props
+  fileList?: File[];
+  currentIndex?: number;
+  onNext?: () => void;
+  onPrev?: () => void;
+  onSelectFile?: (index: number) => void;
+  onBackToResults?: () => void;
 }
 
 const ComparisonViewer = ({ 
@@ -96,7 +109,13 @@ const ComparisonViewer = ({
   facesBefore,
   facesAfter,
   verticesBefore,
-  verticesAfter
+  verticesAfter,
+  fileList,
+  currentIndex,
+  onNext,
+  onPrev,
+  onSelectFile,
+  onBackToResults
 }: ComparisonViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [optimizedObjectUrl, setOptimizedObjectUrl] = useState<string | null>(null);
@@ -120,7 +139,9 @@ const ComparisonViewer = ({
     
     try {
       await fetch(`/api/activate-share/${id}`, { method: 'POST' });
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
 
     navigator.clipboard.writeText(shareUrl);
     toast({
@@ -219,8 +240,67 @@ const ComparisonViewer = ({
 
   if (!objectUrl) return null;
 
+  const showFileSwitcher = fileList && fileList.length > 1 && currentIndex !== undefined;
+
   return (
     <div ref={mainContainerRef} className="w-full max-w-4xl">
+      {showFileSwitcher && (
+        <div className="flex items-center justify-between mb-4 bg-surface border-3 border-muted p-2">
+          <div className="flex items-center gap-2">
+            {onBackToResults && (
+              <button 
+                onClick={onBackToResults}
+                className="p-2 hover:bg-muted/50 text-muted hover:text-reading transition-colors"
+                title="Back to Results"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
+            <span className="font-ui text-xs text-muted uppercase tracking-widest ml-2">
+              File {currentIndex! + 1} of {fileList!.length}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onPrev}
+              disabled={currentIndex === 0}
+              className="p-2 hover:bg-muted/50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-3 py-1 hover:bg-muted/50 transition-colors font-ui text-sm max-w-[200px]">
+                  <span className="truncate">{file.name}</span>
+                  <List className="w-4 h-4 text-muted" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
+                {fileList!.map((f, idx) => (
+                  <DropdownMenuItem 
+                    key={idx} 
+                    onClick={() => onSelectFile?.(idx)}
+                    className={currentIndex === idx ? "bg-muted font-bold" : ""}
+                  >
+                    <span className="truncate max-w-[200px]">{idx + 1}. {f.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <button
+              onClick={onNext}
+              disabled={currentIndex === fileList!.length - 1}
+              className="p-2 hover:bg-muted/50 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div 
         ref={containerRef}
         className="relative w-full aspect-[16/9] border-3 border-muted overflow-hidden select-none"

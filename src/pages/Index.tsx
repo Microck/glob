@@ -56,6 +56,7 @@ const Index = () => {
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [isDebugConsoleVisible, setIsDebugConsoleVisible] = useState(false);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -192,7 +193,45 @@ const Index = () => {
     setCompressedSize(0);
     setIsDebugMode(false);
     setIsModelLoading(false);
+    setViewingIndex(null);
   }, []);
+
+  const handleViewResult = useCallback((index: number) => {
+    setViewingIndex(index);
+  }, []);
+
+  const handleBackToResults = useCallback(() => {
+    setViewingIndex(null);
+  }, []);
+
+  const handleNextFile = useCallback(() => {
+    setViewingIndex(prev => (prev !== null && prev < files.length - 1 ? prev + 1 : prev));
+  }, [files.length]);
+
+  const handlePrevFile = useCallback(() => {
+    setViewingIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev));
+  }, []);
+
+  const handleSelectFile = useCallback((index: number) => {
+    setViewingIndex(index);
+  }, []);
+
+  const handleActiveDownload = useCallback(async () => {
+    const targetFile = viewingIndex !== null ? files[viewingIndex] : file;
+    const targetUrl = viewingIndex !== null ? bulkResults[viewingIndex]?.downloadUrl : downloadUrl;
+    
+    if (!targetFile || !targetUrl) return;
+    
+    try {
+      const extension = targetFile.name.match(/\.(glb|gltf)$/i)?.[0] || '.glb';
+      const baseName = targetFile.name.replace(/\.(glb|gltf)$/i, '');
+      const newFileName = `${baseName}-glob_micr_dev${extension}`;
+      
+      await downloadFile(targetUrl, newFileName);
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  }, [file, downloadUrl, viewingIndex, files, bulkResults]);
 
   const handleCompress = useCallback(async () => {
     if (!file) return;
@@ -248,8 +287,8 @@ const Index = () => {
     } catch (error) {
       console.error('Compression error:', error);
       setAppState('preview');
-    }
-  }, [file, decimation, dracoLevel, getToken, mode, simpleTarget, desiredSize, desiredPolygons, facesBefore, weld, quantize, draco, textureQuality]);
+      }
+  }, [file, decimation, dracoLevel, getToken, mode, simpleTarget, desiredPolygons, facesBefore, weld, quantize, draco, textureQuality]);
 
   const handleDownload = useCallback(async () => {
     if (!file || !downloadUrl) return;
@@ -420,13 +459,14 @@ const Index = () => {
       )}
       
       {appState === 'complete' && file && (
-        files.length > 1 ? (
+        files.length > 1 && viewingIndex === null ? (
           <div className="w-full flex justify-center">
             <BulkProgressList 
               files={files} 
               status={fileStatuses} 
               currentProgress={100} 
               results={bulkResults} 
+              onView={handleViewResult}
             />
           </div>
         ) : (
@@ -456,16 +496,22 @@ const Index = () => {
           </div>
         ) : (
           <ComparisonViewer
-            file={file}
-            originalSize={file.size}
-            compressedSize={compressedSize}
-            optimizedUrl={downloadUrl}
-            onDownload={handleDownload}
+            file={viewingIndex !== null ? files[viewingIndex] : file}
+            originalSize={viewingIndex !== null ? files[viewingIndex].size : file.size}
+            compressedSize={viewingIndex !== null ? (bulkResults[viewingIndex]?.optimizedSize || 0) : compressedSize}
+            optimizedUrl={viewingIndex !== null ? (bulkResults[viewingIndex]?.downloadUrl || '') : downloadUrl}
+            onDownload={handleActiveDownload}
             onReset={handleReset}
-            facesBefore={facesBefore}
-            facesAfter={facesAfter}
-            verticesBefore={verticesBefore}
-            verticesAfter={verticesAfter}
+            facesBefore={viewingIndex !== null ? bulkResults[viewingIndex]?.stats.facesBefore : facesBefore}
+            facesAfter={viewingIndex !== null ? bulkResults[viewingIndex]?.stats.facesAfter : facesAfter}
+            verticesBefore={viewingIndex !== null ? bulkResults[viewingIndex]?.stats.verticesBefore : verticesBefore}
+            verticesAfter={viewingIndex !== null ? bulkResults[viewingIndex]?.stats.verticesAfter : verticesAfter}
+            fileList={files.length > 1 ? files : undefined}
+            currentIndex={viewingIndex !== null ? viewingIndex : undefined}
+            onNext={handleNextFile}
+            onPrev={handlePrevFile}
+            onSelectFile={handleSelectFile}
+            onBackToResults={files.length > 1 ? handleBackToResults : undefined}
           />
         )
       )

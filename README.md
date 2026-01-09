@@ -5,6 +5,14 @@ This repo contains:
 - Frontend: Vite + React (`npm run dev`)
 - Backend: Express + TypeScript optimization API (`npm run api:dev`)
 
+## Features
+
+- **Mesh Decimation**: Reduce polygon count intelligently.
+- **Draco Compression**: Apply advanced geometry compression.
+- **Texture Optimization**: Resize and compress textures.
+- **Bulk Processing (Globber)**: Convert up to 10 files at once with ZIP download (Premium).
+- **Storage Quota**: Manage up to 1GB of optimized assets (Premium).
+
 ## Backend: 3D Optimization API
 
 ### Dependencies (backend-related)

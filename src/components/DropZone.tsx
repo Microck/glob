@@ -8,13 +8,20 @@ export type AnimationType =
   | 'stomp' | 'slide-up' | 'slide-down' | 'zoom-in' | 'flip-x' | 'flip-y' | 'jitter';
 
 interface DropZoneProps {
-  onFileSelect: (file: File) => void;
+  onFileSelect: (files: File[]) => void;
   isLoading?: boolean;
   loadProgress?: number;
   animationType?: AnimationType;
+  maxFiles?: number;
 }
 
-const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = 'glitch-slide' }: DropZoneProps) => {
+const DropZone = ({ 
+  onFileSelect, 
+  isLoading, 
+  loadProgress = 0, 
+  animationType = 'glitch-slide',
+  maxFiles = 1
+}: DropZoneProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -178,16 +185,24 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = '
     
     if (isLoading) return;
     
-    const file = e.dataTransfer.files[0];
-    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
-      onFileSelect(file);
+    const droppedFiles = Array.from(e.dataTransfer.files)
+      .filter(file => file.name.endsWith('.glb') || file.name.endsWith('.gltf'))
+      .slice(0, maxFiles);
+      
+    if (droppedFiles.length > 0) {
+      onFileSelect(droppedFiles);
     }
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && !isLoading) {
-      onFileSelect(file);
+    const selectedFiles = e.target.files 
+      ? Array.from(e.target.files)
+          .filter(file => file.name.endsWith('.glb') || file.name.endsWith('.gltf'))
+          .slice(0, maxFiles)
+      : [];
+      
+    if (selectedFiles.length > 0 && !isLoading) {
+      onFileSelect(selectedFiles);
     }
   };
 
@@ -215,6 +230,7 @@ const DropZone = ({ onFileSelect, isLoading, loadProgress = 0, animationType = '
         ref={inputRef}
         type="file"
         accept=".glb,.gltf"
+        multiple={maxFiles > 1}
         onChange={handleFileChange}
         className="hidden"
       />

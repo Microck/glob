@@ -32,3 +32,20 @@ export async function getAccessLevel(userId: string): Promise<AccessLevel> {
     status: data.subscription_status,
   };
 }
+
+export async function getStorageUsage(userId: string): Promise<number> {
+  if (!userId) return 0;
+
+  const { data, error } = await supabaseAdmin
+    .from("profiles")
+    .select("storage_used_bytes")
+    .eq("id", userId)
+    .single();
+
+  if (error || !data) {
+    return 0;
+  }
+
+  return data.storage_used_bytes || 0;
+}
+

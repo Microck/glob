@@ -38,3 +38,9 @@
 8. [x] **Viewer Improvements**
    - Implemented "Center Model" button functionality.
    - Adjusted default zoom to 90% for better object framing.
+
+9. [ ] **Bulk Convert (Globber)**
+   - Allow Globber users to drag and drop multiple files (up to 10).
+   - Process files sequentially.
+   - Download results as a ZIP file.
+   - 1GB total storage quota.

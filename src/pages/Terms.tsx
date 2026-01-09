@@ -48,8 +48,22 @@ const Terms = () => {
             </ul>
           </section>
 
+          <section>
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">5. Bulk Processing Limits</h2>
+            <p className="leading-relaxed text-sm mb-4">
+              Bulk conversion is limited to 10 files per batch to ensure fair resource usage.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">6. Storage Quota</h2>
+            <p className="leading-relaxed text-sm mb-4">
+              Globber tier includes 1GB of total storage for optimized assets. Oldest files may be removed if quota is exceeded.
+            </p>
+          </section>
+
           <section className="md:col-span-2">
-            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">5. Disclaimer</h2>
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-widest text-active">7. Disclaimer</h2>
             <p className="leading-relaxed text-xs bg-surface p-4 border-3 border-muted italic">
               glob is provided "AS IS", without warranty of any kind. You use these tools at your own risk.
             </p>

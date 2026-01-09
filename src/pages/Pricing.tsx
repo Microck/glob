@@ -25,15 +25,18 @@ const Pricing = () => {
                 <Check className="w-4 h-4 text-active" /> 300MB File Limit
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
-                <Check className="w-4 h-4 text-active" /> Instant Purge (Unless Shared)
+                <Check className="w-4 h-4 text-active" /> Instant Purge*
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
                 <Check className="w-4 h-4 text-active" /> Standard Optimization
               </li>
             </ul>
-            <Link to="/" className="w-full bg-surface border-3 border-muted text-muted font-ui text-sm py-3 text-center hover:border-active hover:text-active transition-none font-bold uppercase relative z-10">
-              Current Plan
-            </Link>
+              <Link to="/" className="w-full bg-surface border-3 border-muted text-muted font-ui text-sm py-3 text-center hover:border-active hover:text-active transition-none font-bold uppercase relative z-10">
+                Current Plan
+              </Link>
+              <div className="mt-4 text-[10px] text-muted font-mono uppercase text-center relative z-10">
+                *Shared links last 1 hour
+              </div>
           </div>
 
           <div 
@@ -84,6 +87,9 @@ const Pricing = () => {
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
                 <Check className="w-4 h-4 text-active" /> Priority Queue
+              </li>
+              <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
+                <Check className="w-4 h-4 text-active" /> Bulk Convert (up to 10 files)
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
                 <Check className="w-4 h-4 text-active" /> Optimization History

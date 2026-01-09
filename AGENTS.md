@@ -5,7 +5,7 @@
 
 ## OVERVIEW
 
-GLB/gltf 3D model optimizer with React frontend and Express API. Uses @gltf-transform for mesh decimation, Draco compression, and Meshopt optimization.
+GLB/gltf 3D model optimizer with React frontend and Express API. Uses @gltf-transform for mesh decimation, Draco compression, and Meshopt optimization. Supports bulk processing and storage quotas for premium users.
 
 ## STRUCTURE
 
@@ -59,3 +59,6 @@ npm run lint             # ESLint
 
 - Backend registers Meshopt + Draco extensions with NodeIO in `api/src/services/gltfService.ts`
 - `POST /api/optimize` accepts multipart/form-data with GLB/gltf files
+- **Bulk**: Queue up to 10 files, sequential processing, ZIP download.
+- **Quota**: 1GB total storage for Globber tier.
+
