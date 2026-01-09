@@ -53,6 +53,39 @@ export async function uploadToR2(key: string, buffer: Buffer, contentType: strin
   await r2.send(command);
 }
 
+export async function getUploadUrl(key: string, expiresIn: number = 3600) {
+  const r2 = getR2();
+  if (!r2) {
+    return `/api/local-upload/${key}`;
+  }
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    ContentType: "model/gltf-binary",
+  });
+
+  return await getSignedUrl(r2, command, { expiresIn });
+}
+
+export async function getFromR2(key: string): Promise<Buffer> {
+  const r2 = getR2();
+  if (!r2) {
+    const localPath = path.join(OPTIMIZED_DIR, key);
+    return await fs.readFile(localPath);
+  }
+
+  const command = new GetObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
+
+  const response = await r2.send(command);
+  const arrayBuffer = await response.Body?.transformToByteArray();
+  if (!arrayBuffer) throw new Error("Failed to download from R2");
+  return Buffer.from(arrayBuffer);
+}
+
 export async function getDownloadUrl(key: string, expiresIn: number = 3600) {
   const r2 = getR2();
   if (!r2) {

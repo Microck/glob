@@ -30,6 +30,66 @@ export async function optimizeFile(
   memberId?: string,
   onProgress?: (percent: number) => void
 ): Promise<OptimizeResponse> {
+  const MAX_DIRECT_UPLOAD_SIZE = 4 * 1024 * 1024;
+  
+  if (file.size > MAX_DIRECT_UPLOAD_SIZE) {
+    try {
+      const urlResponse = await fetch(`${API_BASE}/api/get-upload-url?filename=${encodeURIComponent(file.name)}`, {
+        headers: memberId ? { 'Authorization': `Bearer ${memberId}` } : {}
+      });
+      if (!urlResponse.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, key } = await urlResponse.json();
+
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', 'model/gltf-binary');
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable && onProgress) {
+            const percent = Math.round((e.loaded / e.total) * 40);
+            onProgress(percent);
+          }
+        });
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(true);
+          else reject(new Error('R2 upload failed'));
+        });
+        
+        xhr.addEventListener('error', () => reject(new Error('Network error during R2 upload')));
+        xhr.send(file);
+      });
+
+      const optimizeResponse = await fetch(`${API_BASE}/api/optimize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(memberId ? { 'Authorization': `Bearer ${memberId}` } : {})
+        },
+        body: JSON.stringify({
+          storageKey: key,
+          settings: JSON.stringify(settings),
+          originalName: file.name
+        })
+      });
+
+      if (!optimizeResponse.ok) {
+        const error = await optimizeResponse.json();
+        throw new Error(error.message || 'Optimization failed');
+      }
+
+      const result = await optimizeResponse.json();
+      if (onProgress) onProgress(100);
+      return result;
+
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Upload failed';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
+      throw error;
+    }
+  }
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();

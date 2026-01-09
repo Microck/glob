@@ -11,7 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
-import { uploadToR2, getDownloadUrl, deleteFromR2 } from "../services/r2Service.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2 } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +61,20 @@ const upload = multer({
 });
 
 export const optimizeRouter = express.Router();
+
+optimizeRouter.get("/get-upload-url", async (req: Request, res: Response) => {
+  try {
+    const filename = req.query.filename as string || "model.glb";
+    const ext = path.extname(filename).toLowerCase() || ".glb";
+    const jobId = randomUUID();
+    const key = `uploads/${jobId}${ext}`;
+    const uploadUrl = await getUploadUrl(key);
+    
+    return res.json({ uploadUrl, key });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to generate upload URL" });
+  }
+});
 
 optimizeRouter.get("/history", async (req: Request, res: Response) => {
   const memberId = req.headers["x-member-id"] as string;
@@ -153,14 +167,18 @@ setInterval(async () => {
 }, 60 * 60 * 1000); 
 
 optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ status: "error", message: "Missing file" });
+  const storageKey = req.body.storageKey as string;
+  
+  if (!req.file && !storageKey) {
+    return res.status(400).json({ status: "error", message: "Missing file or storage key" });
   }
 
   const memberId = req.headers["x-member-id"] as string;
   const access = await getAccessLevel(memberId);
   
-  if (access.hasAccess && memberId) {
+  const fileSize = req.file ? req.file.size : 0;
+
+  if (req.file && access.hasAccess && memberId) {
     const currentUsage = await getStorageUsage(memberId);
     const estimatedNewTotal = currentUsage + req.file.size;
     const STORAGE_QUOTA = 1024 * 1024 * 1024;
@@ -176,10 +194,10 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
 
   const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 10 * 60 * 1000;
 
-  const originalSize = req.file.size;
+  const originalSize = req.file ? req.file.size : 0;
   const sizeLimit = access.hasAccess ? 500 * 1024 * 1024 : 300 * 1024 * 1024;
 
-  if (originalSize > sizeLimit) {
+  if (req.file && originalSize > sizeLimit) {
     await fs.unlink(req.file.path).catch(() => undefined);
     return res.status(413).json({ 
       status: "error", 
@@ -199,35 +217,39 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
     return res.status(400).json({ status: "error", message: "Invalid settings JSON" });
   }
 
-  const inputPath = req.file.path;
+  const inputPath = req.file?.path;
 
   try {
-    const buffer = await fs.readFile(inputPath);
+    const buffer = storageKey 
+      ? await getFromR2(storageKey)
+      : await fs.readFile(inputPath!);
+
+    const actualOriginalSize = buffer.byteLength;
 
     const { optimizedBuffer, stats } = await processGlb(buffer, settings);
 
     const jobId = randomUUID();
-    const storageKey = `${jobId}.glb`;
+    const resultKey = `optimized/${jobId}.glb`;
 
-    await uploadToR2(storageKey, optimizedBuffer);
+    await uploadToR2(resultKey, optimizedBuffer);
     
     const metadata = {
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + expirationMs).toISOString(), 
-      originalSize,
+      originalSize: actualOriginalSize,
       optimizedSize: optimizedBuffer.byteLength,
       stats,
-      storageKey
+      storageKey: resultKey
     };
     await fs.writeFile(path.join(OPTIMIZED_DIR, `${jobId}.json`), JSON.stringify(metadata));
 
     const downloadUrl = `${req.protocol}://${req.get("host")}/api/download/${jobId}`;
 
-    if (memberId && req.file && access.hasAccess) {
+    if (memberId && access.hasAccess) {
       await saveOptimization({
         userId: memberId,
-        originalName: req.file.originalname,
-        originalSize,
+        originalName: req.body.originalName || req.file?.originalname || "model.glb",
+        originalSize: actualOriginalSize,
         optimizedSize: optimizedBuffer.byteLength,
         stats,
         downloadUrl
@@ -238,9 +260,13 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
       await ingestOptimization(memberId).catch(() => undefined);
     }
 
+    if (storageKey) {
+      await deleteFromR2(storageKey).catch(() => undefined);
+    }
+
     return res.json({
       status: "success",
-      originalSize,
+      originalSize: actualOriginalSize,
       optimizedSize: optimizedBuffer.byteLength,
       downloadUrl,
       stats,
@@ -250,7 +276,9 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
     const statusCode = getStatusCode(err);
     return res.status(statusCode).json({ status: "error", message });
   } finally {
-    await fs.unlink(inputPath).catch(() => undefined);
+    if (inputPath) {
+      await fs.unlink(inputPath).catch(() => undefined);
+    }
   }
 });
 
