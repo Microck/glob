@@ -16,6 +16,7 @@
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
+          "api/src/**/*",
           "node_modules/draco3d/**/*.wasm",
           "node_modules/meshoptimizer/**/*.wasm"
         ]
