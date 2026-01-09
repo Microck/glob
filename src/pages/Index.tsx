@@ -86,9 +86,9 @@ const Index = () => {
       return;
     }
     
-    setAppState('processing');
+setAppState('processing');
     setProgress(0);
-    setCurrentMessage('LOADING FILE...');
+    setCurrentMessage('PARSING MODEL...');
     
     const mainFile = filesToProcess[0];
     
@@ -97,15 +97,14 @@ const Index = () => {
     
     let p = 0;
     const interval = setInterval(() => {
-      p += 2;
+      p += 5;
       if (p <= 40) {
         setProgress(p);
       } else {
         clearInterval(interval);
-        setCurrentMessage('LOADING MODEL...');
         setIsModelLoading(true);
       }
-    }, 20);
+    }, 15);
   }, [userId, toast]);
 
   const handleRemoveFile = useCallback((index: number) => {
@@ -181,12 +180,10 @@ const Index = () => {
     setProgress(Math.floor(p));
   }, []);
 
-  const handleModelLoaded = useCallback(() => {
+const handleModelLoaded = useCallback(() => {
     setProgress(100);
-    setTimeout(() => {
-      setIsModelLoading(false);
-      setAppState('preview');
-    }, 300);
+    setIsModelLoading(false);
+    setAppState('preview');
   }, []);
 
   const handleReset = useCallback(() => {
