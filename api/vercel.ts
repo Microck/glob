@@ -35,7 +35,7 @@ app.use(async (_req, _res, next) => {
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", version: "2.0.0" });
 });
 
 app.use("/api/webhooks", express.text({ type: "application/json" }), webhookRouter);
