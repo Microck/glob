@@ -1,8 +1,11 @@
 import cors from "cors";
 import express from "express";
 import fs from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { optimizeRouter } from "./src/controllers/optimizeController.js";
 import { webhookRouter } from "./src/controllers/webhookController.js";
+import { getUploadUrl } from "./src/services/r2Service.js";
+import path from "node:path";
 
 const app = express();
 
@@ -35,7 +38,22 @@ app.use(async (_req, _res, next) => {
 });
 
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", version: "2.0.0" });
+  res.json({ status: "ok", version: "3.0.0", timestamp: Date.now() });
+});
+
+app.get("/api/get-upload-url", async (req, res) => {
+  try {
+    const filename = (req.query.filename as string) || "model.glb";
+    const ext = path.extname(filename).toLowerCase() || ".glb";
+    const jobId = randomUUID();
+    const key = `uploads/${jobId}${ext}`;
+    const uploadUrl = await getUploadUrl(key);
+    
+    return res.json({ uploadUrl, key });
+  } catch (error) {
+    console.error("get-upload-url error:", error);
+    return res.status(500).json({ error: "Failed to generate upload URL" });
+  }
 });
 
 app.use("/api/webhooks", express.text({ type: "application/json" }), webhookRouter);
