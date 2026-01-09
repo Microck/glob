@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from "@clerk/clerk-react";
+import { useToast } from "@/hooks/use-toast";
 import DropZone from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
 import Controls from '@/components/Controls';
@@ -9,6 +10,7 @@ import ScrambleText from '@/components/ScrambleText';
 import DebugMenu from '@/components/DebugMenu';
 import PageLayout from '@/components/PageLayout';
 import History from '@/components/History';
+import FileQueue from '@/components/FileQueue';
 import { optimizeFile, downloadFile } from '@/lib/api';
 import DebugConsole from '@/components/DebugConsole';
 
@@ -25,8 +27,11 @@ const PROCESSING_MESSAGES = [
 
 const Index = () => {
   const { userId, getToken } = useAuth();
+  const { toast } = useToast();
   const [appState, setAppState] = useState<AppState>('idle');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const file = files.length > 0 ? files[0] : null;
+  
   const [mode, setMode] = useState<'simple' | 'advanced'>('simple');
   const [simpleTarget, setSimpleTarget] = useState<'size' | 'polygons'>('size');
   const [desiredSize, setDesiredSize] = useState(1);
@@ -59,13 +64,31 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleFileSelect = useCallback((selectedFile: File) => {
-    setFile(selectedFile);
+  const handleFileSelect = useCallback((selectedFiles: File[]) => {
+    let filesToProcess = selectedFiles;
+
+    if (selectedFiles.length > 1 && !userId) {
+      toast({
+        title: "Bulk processing is for Globbers only",
+        description: "Please sign in to process multiple files at once.",
+        variant: "destructive",
+      });
+      filesToProcess = [selectedFiles[0]];
+    } 
+    
+    setFiles(filesToProcess);
+
+    if (filesToProcess.length > 1) {
+      return;
+    }
+    
     setAppState('processing');
     setProgress(0);
     setCurrentMessage('LOADING FILE...');
     
-    setDesiredSize(Number((selectedFile.size / 1024 / 1024 * 0.8).toFixed(2)));
+    const mainFile = filesToProcess[0];
+    
+    setDesiredSize(Number((mainFile.size / 1024 / 1024 * 0.8).toFixed(2)));
     setDesiredPolygons(10000); 
     
     let p = 0;
@@ -79,6 +102,14 @@ const Index = () => {
         setIsModelLoading(true);
       }
     }, 20);
+  }, [userId, toast]);
+
+  const handleRemoveFile = useCallback((index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleStartQueue = useCallback(() => {
+    setAppState('processing');
   }, []);
 
   const handleModelProgress = useCallback((percent: number) => {
@@ -95,7 +126,7 @@ const Index = () => {
   }, []);
 
   const handleReset = useCallback(() => {
-    setFile(null);
+    setFiles([]);
     setAppState('idle');
     setProgress(0);
     setCompressedSize(0);
@@ -183,8 +214,8 @@ const Index = () => {
   const handleDebugStateChange = useCallback((newState: AppState) => {
     setIsDebugMode(true);
     
-    if (newState !== 'idle' && !file) {
-      setFile(createMockFile());
+    if (newState !== 'idle' && files.length === 0) {
+      setFiles([createMockFile()]);
     }
     
     setAppState(newState);
@@ -201,7 +232,7 @@ const Index = () => {
     } else if (newState === 'idle') {
       setIsDebugMode(false);
     }
-  }, [file]);
+  }, [files]);
 
   return (
     <PageLayout disableScroll appState={appState} onStateChange={handleDebugStateChange}>
@@ -226,12 +257,22 @@ const Index = () => {
 
       {appState === 'idle' && (
         <div className="w-full flex flex-col items-center">
-          <DropZone 
-            onFileSelect={handleFileSelect} 
-            isLoading={false}
-            loadProgress={0}
-            animationType="hydraulic"
-          />
+          {files.length > 0 ? (
+            <FileQueue 
+              files={files} 
+              onRemove={handleRemoveFile} 
+              onClear={handleReset} 
+              onStart={handleStartQueue} 
+            />
+          ) : (
+            <DropZone 
+              onFileSelect={handleFileSelect} 
+              isLoading={false}
+              loadProgress={0}
+              animationType="hydraulic"
+              maxFiles={userId ? 10 : 1}
+            />
+          )}
           {userId && <History userId={userId} />}
         </div>
       )}
