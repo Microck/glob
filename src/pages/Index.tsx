@@ -11,7 +11,8 @@ import DebugMenu from '@/components/DebugMenu';
 import PageLayout from '@/components/PageLayout';
 import History from '@/components/History';
 import FileQueue from '@/components/FileQueue';
-import { optimizeFile, downloadFile } from '@/lib/api';
+import BulkProgressList, { FileStatus } from '@/components/BulkProgressList';
+import { optimizeFile, downloadFile, type OptimizeResponse } from '@/lib/api';
 import DebugConsole from '@/components/DebugConsole';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
@@ -30,6 +31,8 @@ const Index = () => {
   const { toast } = useToast();
   const [appState, setAppState] = useState<AppState>('idle');
   const [files, setFiles] = useState<File[]>([]);
+  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([]);
+  const [bulkResults, setBulkResults] = useState<(OptimizeResponse | null)[]>([]);
   const file = files.length > 0 ? files[0] : null;
   
   const [mode, setMode] = useState<'simple' | 'advanced'>('simple');
@@ -108,9 +111,66 @@ const Index = () => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  const handleStartQueue = useCallback(() => {
+  const handleStartQueue = useCallback(async () => {
+    if (files.length === 0) return;
+    
     setAppState('processing');
-  }, []);
+    const initialStatuses = new Array(files.length).fill('pending');
+    setFileStatuses(initialStatuses);
+    const initialResults = new Array(files.length).fill(null);
+    setBulkResults(initialResults);
+
+    const token = await getToken();
+
+    for (let i = 0; i < files.length; i++) {
+      setFileStatuses(prev => {
+        const next = [...prev];
+        next[i] = 'processing';
+        return next;
+      });
+      setProgress(0);
+      setCurrentMessage(`PROCESSING ${i + 1}/${files.length}`);
+
+      try {
+        const settings = {
+          decimateRatio: decimation,
+          dracoLevel: dracoLevel,
+          textureQuality: textureQuality,
+          weld: weld,
+          quantize: quantize,
+          draco: draco,
+        };
+
+        const result = await optimizeFile(files[i], settings, token || undefined, (percent) => {
+          setProgress(percent);
+        });
+
+        if (result.status === 'success') {
+          setBulkResults(prev => {
+            const next = [...prev];
+            next[i] = result;
+            return next;
+          });
+          setFileStatuses(prev => {
+            const next = [...prev];
+            next[i] = 'completed';
+            return next;
+          });
+        } else {
+          throw new Error('Optimization failed');
+        }
+      } catch (error) {
+        console.error(error);
+        setFileStatuses(prev => {
+          const next = [...prev];
+          next[i] = 'error';
+          return next;
+        });
+      }
+    }
+
+    setAppState('complete');
+  }, [files, decimation, dracoLevel, textureQuality, weld, quantize, draco, getToken]);
 
   const handleModelProgress = useCallback((percent: number) => {
     const p = 40 + (percent * 0.6);
@@ -324,16 +384,29 @@ const Index = () => {
 
       {(appState === 'processing' || isModelLoading) && (
         <div className="w-full">
-          <div className="mb-8 text-center">
-            <ScrambleText 
-              text={currentMessage.includes('LOADING') ? 'LOADING' : 'COMPRESSING'} 
-              isActive={true}
-              className="font-display text-5xl text-active tracking-brutal"
-            />
-          </div>
-          <ProgressBar progress={progress} message={currentMessage} />
+          {files.length > 1 ? (
+            <div className="w-full flex justify-center">
+              <BulkProgressList 
+                files={files} 
+                status={fileStatuses} 
+                currentProgress={progress} 
+                results={bulkResults} 
+              />
+            </div>
+          ) : (
+            <>
+              <div className="mb-8 text-center">
+                <ScrambleText 
+                  text={currentMessage.includes('LOADING') ? 'LOADING' : 'COMPRESSING'} 
+                  isActive={true}
+                  className="font-display text-5xl text-active tracking-brutal"
+                />
+              </div>
+              <ProgressBar progress={progress} message={currentMessage} />
+            </>
+          )}
           
-            {isModelLoading && file && (
+            {isModelLoading && file && files.length === 1 && (
               <div className="absolute inset-0 opacity-0 pointer-events-none" style={{ zIndex: -100 }}>
                 <GLBViewer 
                   file={file} 
@@ -347,7 +420,17 @@ const Index = () => {
       )}
       
       {appState === 'complete' && file && (
-        isDebugMode ? (
+        files.length > 1 ? (
+          <div className="w-full flex justify-center">
+            <BulkProgressList 
+              files={files} 
+              status={fileStatuses} 
+              currentProgress={100} 
+              results={bulkResults} 
+            />
+          </div>
+        ) : (
+          isDebugMode ? (
           <div className="w-full">
             <div className="w-full aspect-[16/9] border-3 border-muted bg-surface flex items-center justify-center">
               <div className="text-center">
@@ -385,7 +468,8 @@ const Index = () => {
             verticesAfter={verticesAfter}
           />
         )
-      )}
+      )
+    )}
     </PageLayout>
   );
 };
