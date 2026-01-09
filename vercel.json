@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/vercel.ts": {
+    "api/index.ts": {
       "maxDuration": 60
     }
   },
@@ -12,7 +12,7 @@
       "config": { "distDir": "dist" }
     },
     {
-      "src": "api/vercel.ts",
+      "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
@@ -26,7 +26,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/vercel.ts"
+      "destination": "/api/index.ts"
     },
     {
       "source": "/(.*)",
