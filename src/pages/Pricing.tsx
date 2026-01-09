@@ -40,7 +40,7 @@ const Pricing = () => {
           </div>
 
           <div 
-            className="border-3 border-active p-8 flex flex-col h-full relative shadow-brutal overflow-hidden"
+            className="border-3 border-active p-8 flex flex-col h-full relative shadow-brutal"
             style={{ 
               background: `
                 radial-gradient(circle at 100% 65%, rgba(252, 110, 131, 0.39) 0%, transparent 96%),
@@ -55,8 +55,8 @@ const Pricing = () => {
                 backgroundImage: getPawPattern("#342d39", 1, 20, 347),
                 backgroundSize: '76px 76px',
                 opacity: 0.24,
-                ['--pattern-drift-x' as any]: `-127px`,
-                ['--pattern-drift-y' as any]: `-100px`,
+                ['--pattern-drift-x' as any]: `-152px`,
+                ['--pattern-drift-y' as any]: `-76px`,
                 ['--pattern-drift-speed' as any]: `9s`
               }}
             />
@@ -66,7 +66,7 @@ const Pricing = () => {
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-15.6px, -58.1px)',
+                  transform: 'translate(10px, -10px)',
                   width: '105.3px',
                   height: '59.4px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
