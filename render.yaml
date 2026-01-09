@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: glob-api
+    runtime: node
+    buildCommand: npm install && npm run api:build
+    startCommand: npm run api:start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CORS_ORIGINS
+        value: https://glob.micr.dev
