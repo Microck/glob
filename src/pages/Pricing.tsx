@@ -66,9 +66,9 @@ const Pricing = () => {
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(10px, -10px)',
-                  width: '105.3px',
-                  height: '59.4px',
+                  transform: 'translate(-6px, -60px)',
+                  width: '95px',
+                  height: '53px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
                 }} 
               />
