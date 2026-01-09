@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/Microck/glob">
-    <img src="public/glob.png" alt="logo" width="100">
+    <img src="public/glob.png" alt="logo" width="200">
   </a>
 </p>
 
