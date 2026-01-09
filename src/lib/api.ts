@@ -1,5 +1,7 @@
 import { toast } from '@/hooks/use-toast';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export type OptimizeSettings = {
   decimateRatio: number;
   dracoLevel: number;
@@ -73,7 +75,7 @@ export async function optimizeFile(
     
     xhr.addEventListener('abort', () => reject(new Error('Request aborted')));
 
-    xhr.open('POST', '/api/optimize');
+    xhr.open('POST', `${API_BASE}/api/optimize`);
     if (memberId) {
       xhr.setRequestHeader('Authorization', `Bearer ${memberId}`);
     }
@@ -109,7 +111,7 @@ export async function downloadFile(url: string, filename: string): Promise<void>
 }
 
 export async function deleteOptimization(id: string, memberId: string): Promise<void> {
-  const response = await fetch(`/api/history/${id}`, {
+  const response = await fetch(`${API_BASE}/api/history/${id}`, {
     method: 'DELETE',
     headers: {
       'x-member-id': memberId
@@ -122,7 +124,7 @@ export async function deleteOptimization(id: string, memberId: string): Promise<
 }
 
 export async function getStorageUsage(memberId: string): Promise<{ used: number; total: number }> {
-  const response = await fetch(`/api/usage`, {
+  const response = await fetch(`${API_BASE}/api/usage`, {
     headers: {
       'x-member-id': memberId
     }

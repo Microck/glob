@@ -5,6 +5,8 @@ import { deleteOptimization, getStorageUsage, getLocalHistory, deleteLocalHistor
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 interface Optimization {
   id: string;
   original_name: string;
@@ -26,7 +28,7 @@ const History = ({ userId }: { userId?: string }) => {
       try {
         if (userId) {
           const [historyRes, usageRes] = await Promise.all([
-            fetch(`/api/history`, { headers: { 'x-member-id': userId } }),
+            fetch(`${API_BASE}/api/history`, { headers: { 'x-member-id': userId } }),
             getStorageUsage(userId).catch(() => null)
           ]);
 

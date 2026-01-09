@@ -137,8 +137,9 @@ const ComparisonViewer = ({
     const id = optimizedUrl.split('/').pop();
     const shareUrl = `${window.location.origin}/share/${id}`;
     
+    const apiBase = import.meta.env.VITE_API_URL || '';
     try {
-      await fetch(`/api/activate-share/${id}`, { method: 'POST' });
+      await fetch(`${apiBase}/api/activate-share/${id}`, { method: 'POST' });
     } catch (e) {
       console.error(e);
     }
