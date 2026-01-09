@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useAuth } from "@clerk/clerk-react";
+import { useSafeAuth } from "@/hooks/use-safe-auth";
 import { useToast } from "@/hooks/use-toast";
 import DropZone from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
@@ -27,7 +27,7 @@ const PROCESSING_MESSAGES = [
 ];
 
 const Index = () => {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken } = useSafeAuth();
   const { toast } = useToast();
   const [appState, setAppState] = useState<AppState>('idle');
   const [files, setFiles] = useState<File[]>([]);

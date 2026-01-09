@@ -275,8 +275,32 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
       return res.status(410).json({ status: "error", message: "File expired" });
     }
 
-    const signedUrl = await getDownloadUrl(metadata.storageKey);
-    return res.redirect(signedUrl);
+    const downloadUrl = await getDownloadUrl(metadata.storageKey);
+    
+    if (downloadUrl.startsWith("/api/local-download/")) {
+      const localPath = path.join(OPTIMIZED_DIR, metadata.storageKey);
+      res.setHeader("Content-Type", "model/gltf-binary");
+      res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
+      const fileBuffer = await fs.readFile(localPath);
+      return res.send(fileBuffer);
+    }
+    
+    return res.redirect(downloadUrl);
+  } catch {
+    return res.status(404).json({ status: "error", message: "File not found" });
+  }
+});
+
+optimizeRouter.get("/local-download/:key", async (req: Request, res: Response) => {
+  const key = req.params.key;
+  const filePath = path.join(OPTIMIZED_DIR, key);
+
+  try {
+    await fs.access(filePath);
+    res.setHeader("Content-Type", "model/gltf-binary");
+    res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
+    const fileBuffer = await fs.readFile(filePath);
+    return res.send(fileBuffer);
   } catch {
     return res.status(404).json({ status: "error", message: "File not found" });
   }

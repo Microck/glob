@@ -1,6 +1,47 @@
 import { Link } from "react-router-dom";
-import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/clerk-react";
 import { LogIn } from "lucide-react";
+
+const CLERK_ENABLED = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
+
+const ClerkAuthSection = () => {
+  if (!CLERK_ENABLED) {
+    return (
+      <Link 
+        to="/login"
+        className="flex items-center gap-2 font-ui text-xs text-reading hover:text-active font-bold"
+      >
+        <LogIn className="w-4 h-4" />
+        LOGIN
+      </Link>
+    );
+  }
+
+  const { SignedIn, SignedOut, UserButton, SignInButton } = require("@clerk/clerk-react");
+
+  return (
+    <>
+      <SignedIn>
+        <UserButton 
+          appearance={{
+            elements: {
+              userButtonAvatarBox: "border-2 border-muted",
+              userButtonTrigger: "focus:ring-0 focus:ring-offset-0 focus:shadow-none"
+            }
+          }}
+        />
+      </SignedIn>
+      
+      <SignedOut>
+        <SignInButton mode="modal">
+          <button className="flex items-center gap-2 font-ui text-xs text-reading hover:text-active font-bold">
+            <LogIn className="w-4 h-4" />
+            LOGIN
+          </button>
+        </SignInButton>
+      </SignedOut>
+    </>
+  );
+};
 
 const Header = () => {
   return (
@@ -41,25 +82,7 @@ const Header = () => {
           UPGRADE
         </Link>
         
-        <SignedIn>
-          <UserButton 
-            appearance={{
-              elements: {
-                userButtonAvatarBox: "border-2 border-muted",
-                userButtonTrigger: "focus:ring-0 focus:ring-offset-0 focus:shadow-none"
-              }
-            }}
-          />
-        </SignedIn>
-        
-        <SignedOut>
-          <SignInButton mode="modal">
-            <button className="flex items-center gap-2 font-ui text-xs text-reading hover:text-active font-bold">
-              <LogIn className="w-4 h-4" />
-              LOGIN
-            </button>
-          </SignInButton>
-        </SignedOut>
+        <ClerkAuthSection />
       </div>
     </header>
   );

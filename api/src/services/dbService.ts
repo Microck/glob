@@ -1,10 +1,20 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { getStorageUsage } from "./entitlementService.js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+let supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabase(): SupabaseClient | null {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return null;
+  }
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return supabaseAdmin;
+}
 
 export async function saveOptimization(data: {
   userId: string;
@@ -14,7 +24,10 @@ export async function saveOptimization(data: {
   stats: any;
   downloadUrl: string;
 }) {
-  const { error } = await supabaseAdmin
+  const db = getSupabase();
+  if (!db) return;
+
+  const { error } = await db
     .from("optimizations")
     .insert({
       user_id: data.userId,
@@ -33,7 +46,7 @@ export async function saveOptimization(data: {
     const currentUsage = await getStorageUsage(data.userId);
     const newUsage = currentUsage + data.optimizedSize;
     
-    await supabaseAdmin
+    await db
       .from("profiles")
       .update({ storage_used_bytes: newUsage })
       .eq("id", data.userId);
@@ -44,7 +57,10 @@ export async function saveOptimization(data: {
 
 
 export async function getOptimizations(userId: string) {
-  const { data, error } = await supabaseAdmin
+  const db = getSupabase();
+  if (!db) return [];
+
+  const { data, error } = await db
     .from("optimizations")
     .select("*")
     .eq("user_id", userId)
@@ -55,7 +71,10 @@ export async function getOptimizations(userId: string) {
   }
   
   export async function deleteOptimization(id: string, userId: string) {
-    const { data, error } = await supabaseAdmin
+    const db = getSupabase();
+    if (!db) throw new Error("Database not configured");
+
+    const { data, error } = await db
       .from("optimizations")
       .delete()
       .eq("id", id)
@@ -68,11 +87,14 @@ export async function getOptimizations(userId: string) {
   }
   
   export async function decrementStorageUsage(userId: string, amount: number) {
+    const db = getSupabase();
+    if (!db) return;
+
     try {
       const currentUsage = await getStorageUsage(userId);
       const newUsage = Math.max(0, currentUsage - amount);
       
-      await supabaseAdmin
+      await db
         .from("profiles")
         .update({ storage_used_bytes: newUsage })
         .eq("id", userId);

@@ -1,6 +1,9 @@
 import PageLayout from '@/components/PageLayout';
+import { useDocumentTitle } from "@/hooks/use-document-meta";
 
 const Terms = () => {
+  useDocumentTitle('Terms of Service');
+  
   return (
     <PageLayout isCentered={false}>
       <div className="max-w-5xl mx-auto">

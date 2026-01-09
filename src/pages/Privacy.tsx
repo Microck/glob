@@ -1,6 +1,9 @@
 import PageLayout from '@/components/PageLayout';
+import { useDocumentTitle } from "@/hooks/use-document-meta";
 
 const PrivacyPolicy = () => {
+  useDocumentTitle('Privacy Policy');
+  
   return (
     <PageLayout isCentered={false}>
       <div className="max-w-5xl mx-auto">

@@ -1,10 +1,12 @@
 import PageLayout from "@/components/PageLayout";
 import History from "@/components/History";
-import { useAuth } from "@clerk/clerk-react";
+import { useSafeAuth } from "@/hooks/use-safe-auth";
 import { Navigate } from "react-router-dom";
+import { useDocumentTitle } from "@/hooks/use-document-meta";
 
 const HistoryPage = () => {
-  const { userId, isLoaded } = useAuth();
+  const { userId, isLoaded } = useSafeAuth();
+  useDocumentTitle('Dashboard - Optimization History');
 
   if (!isLoaded) return null;
 

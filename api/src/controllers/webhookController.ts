@@ -1,17 +1,26 @@
 import { Request, Response, Router } from "express";
 import { Webhook } from "standardwebhooks";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+let supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabase(): SupabaseClient | null {
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    return null;
   }
-);
+  if (!supabaseAdmin) {
+    supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  }
+  return supabaseAdmin;
+}
 
 export const webhookRouter = Router();
 
@@ -23,6 +32,11 @@ webhookRouter.post("/polar", async (req: Request, res: Response) => {
 
   if (!webhookSignature || !webhookSecret) {
     return res.status(400).json({ error: "Missing signature or secret" });
+  }
+
+  const db = getSupabase();
+  if (!db) {
+    return res.status(503).json({ error: "Database not configured" });
   }
 
   const wh = new Webhook(webhookSecret);
@@ -52,7 +66,7 @@ webhookRouter.post("/polar", async (req: Request, res: Response) => {
             return res.status(400).json({ error: "No User ID attached" });
         }
 
-        const { error } = await supabaseAdmin
+        const { error } = await db
           .from("profiles")
           .upsert({
             id: userId,
