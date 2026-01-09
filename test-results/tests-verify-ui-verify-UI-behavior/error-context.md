@@ -1,0 +1,100 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "glob glob" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "glob" [ref=e6]
+        - heading "glob" [level=1] [ref=e7]
+      - link "UPGRADE" [ref=e9] [cursor=pointer]:
+        - /url: /pricing
+    - main [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e14]:
+          - generic [ref=e15]: "[DEBUG MODE]"
+          - generic [ref=e16]: 3D VIEWER PLACEHOLDER
+          - generic [ref=e17]: Load a real .glb file to see the viewer
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - button "SIMPLE" [ref=e21] [cursor=pointer]:
+              - img [ref=e22]
+              - text: SIMPLE
+            - button "ADVANCED" [ref=e25] [cursor=pointer]:
+              - img [ref=e26]
+              - text: ADVANCED
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - generic [ref=e34]:
+                  - generic [ref=e35]:
+                    - generic [ref=e36]: Decimation Ratio
+                    - img [ref=e37]
+                  - generic [ref=e39]: 50%
+                - slider [ref=e40] [cursor=pointer]: "0.5"
+              - generic [ref=e41]:
+                - generic [ref=e42]:
+                  - generic [ref=e43]:
+                    - generic [ref=e44]: Draco Level
+                    - img [ref=e45]
+                  - generic [ref=e47]: "7"
+                - slider [ref=e48] [cursor=pointer]: "7"
+              - generic [ref=e49]:
+                - generic [ref=e50]:
+                  - generic [ref=e51]: Texture Max Size
+                  - img [ref=e52]
+                - combobox [ref=e54] [cursor=pointer]:
+                  - generic: 1024px
+                  - img [ref=e55]
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - generic [ref=e59]:
+                  - generic [ref=e60] [cursor=pointer]: Weld Vertices
+                  - img [ref=e61]
+                - switch "Weld Vertices" [checked] [ref=e63] [cursor=pointer]
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e66] [cursor=pointer]: Quantize
+                  - img [ref=e67]
+                - switch "Quantize" [checked] [ref=e69] [cursor=pointer]
+              - generic [ref=e70]:
+                - generic [ref=e71]:
+                  - generic [ref=e72] [cursor=pointer]: Draco Compression
+                  - img [ref=e73]
+                - switch "Draco Compression" [checked] [ref=e75] [cursor=pointer]
+          - button "COMPRESS" [ref=e76] [cursor=pointer]
+    - generic:
+      - generic: v1.3.0-debug
+      - generic [ref=e77]:
+        - link "Privacy" [ref=e78] [cursor=pointer]:
+          - /url: /privacy
+        - link "Terms" [ref=e79] [cursor=pointer]:
+          - /url: /terms
+        - link "Github" [ref=e80] [cursor=pointer]:
+          - /url: https://github.com/Microck/glob
+    - generic [ref=e81]:
+      - generic [ref=e82]:
+        - generic [ref=e83]: DEBUG MENU
+        - button "[X]" [ref=e85] [cursor=pointer]
+      - generic [ref=e86]:
+        - generic [ref=e87]: APP STATE
+        - generic [ref=e88]:
+          - button "IDLE" [ref=e89] [cursor=pointer]
+          - button "PREVIEW" [ref=e90] [cursor=pointer]
+          - button "PROCESSING" [ref=e91] [cursor=pointer]
+          - button "COMPLETE" [ref=e92] [cursor=pointer]
+        - generic [ref=e93]: "current: preview"
+      - generic [ref=e94]:
+        - generic [ref=e95]: MAKE DRAGGABLE
+        - button "PICK ELEMENT FROM PAGE" [ref=e96] [cursor=pointer]
+        - generic [ref=e97]:
+          - button "Header Cat (glob.svg)" [ref=e98] [cursor=pointer]
+          - button "Header Text" [ref=e99] [cursor=pointer]
+          - button "Drop Zone" [ref=e100] [cursor=pointer]
+        - textbox "CSS selector..." [ref=e101]
+      - generic [ref=e103]: "CTRL+` to toggle"
+```

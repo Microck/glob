@@ -175,7 +175,8 @@ const Index = () => {
   }, [file, downloadUrl]);
 
   const createMockFile = () => {
-    const content = new Blob(['mock glb content'], { type: 'model/gltf-binary' });
+    const size = 1024 * 1024 * 5; 
+    const content = new Blob([new Array(size).fill('a').join('')], { type: 'model/gltf-binary' });
     return new File([content], 'debug-model.glb', { type: 'model/gltf-binary' });
   };
 
@@ -188,13 +189,15 @@ const Index = () => {
     
     setAppState(newState);
     
-    if (newState === 'processing') {
+    if (newState === 'processing' || newState === 'preview') {
       setProgress(50);
       setCurrentMessage('DEBUG MODE...');
+      setFacesBefore(50000);
     } else if (newState === 'complete') {
       setProgress(100);
       setCurrentMessage('COMPLETE');
       setCompressedSize(1024 * 500);
+      setFacesBefore(50000);
     } else if (newState === 'idle') {
       setIsDebugMode(false);
     }
