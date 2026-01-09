@@ -13,7 +13,7 @@
 - [x] SAST Recon on `api/src/services/entitlementService.ts`
 - [x] SAST Recon on `api/src/services/gltfService.ts`
   - [ ] Investigate insecure deserialization and DoS in `readDocument` and `processGlb` on lines 78, 143.
-- [ ] SAST Recon on `api/src/services/polarService.ts`
+- [x] SAST Recon on `api/src/services/polarService.ts`
 - [ ] SAST Recon on `api/src/services/r2Service.ts`
 - [ ] SAST Recon on `src/lib/api.ts`
 - [ ] SAST Recon on `src/lib/utils.ts`
