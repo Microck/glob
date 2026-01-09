@@ -378,7 +378,6 @@ const Index = () => {
               maxFiles={userId ? 10 : 1}
             />
           )}
-          <History userId={userId || undefined} />
         </div>
       )}
       
