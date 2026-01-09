@@ -134,3 +134,38 @@ export async function getStorageUsage(memberId: string): Promise<{ used: number;
   
   return response.json();
 }
+
+export function saveToLocalHistory(result: OptimizeResponse & { original_name: string }) {
+  try {
+    const history = JSON.parse(localStorage.getItem('glob_local_history') || '[]');
+    const newItem = {
+      id: `local-${Math.random().toString(36).substr(2, 9)}`,
+      original_name: result.original_name,
+      original_size: result.originalSize,
+      optimized_size: result.optimizedSize,
+      created_at: new Date().toISOString(),
+      download_url: result.downloadUrl,
+      is_local: true
+    };
+    history.unshift(newItem);
+    localStorage.setItem('glob_local_history', JSON.stringify(history.slice(0, 10)));
+  } catch (e) {
+    console.error('Failed to save to local history', e);
+  }
+}
+
+export function getLocalHistory() {
+  try {
+    return JSON.parse(localStorage.getItem('glob_local_history') || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+export function deleteLocalHistoryItem(id: string) {
+  try {
+    const history = JSON.parse(localStorage.getItem('glob_local_history') || '[]');
+    const newHistory = history.filter((item: any) => item.id !== id);
+    localStorage.setItem('glob_local_history', JSON.stringify(newHistory));
+  } catch (e) {}
+}

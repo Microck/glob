@@ -1,0 +1,30 @@
+- [x] Define the audit scope.
+- [x] SAST Recon on `api/src/server.ts`
+- [x] SAST Recon on `api/src/controllers/optimizeController.ts`
+  - [ ] Investigate data flow from `memberId` on lines 60, 71, 82.
+  - [ ] Investigate data flow from `id` on lines 83, 226, 252.
+  - [ ] Investigate data flow from `req.file` on line 125.
+  - [ ] Investigate data flow from `req.body.settings` on line 160.
+- [x] SAST Recon on `api/src/controllers/webhookController.ts`
+  - [ ] Investigate data flow from `req.body` and headers on line 20.
+- [x] SAST Recon on `api/src/middleware/authMiddleware.ts`
+  - [ ] Investigate authentication bypass via `x-member-id` header on lines 7, 21.
+- [x] SAST Recon on `api/src/services/dbService.ts`
+- [x] SAST Recon on `api/src/services/entitlementService.ts`
+- [x] SAST Recon on `api/src/services/gltfService.ts`
+  - [ ] Investigate insecure deserialization and DoS in `readDocument` and `processGlb` on lines 78, 143.
+- [ ] SAST Recon on `api/src/services/polarService.ts`
+- [ ] SAST Recon on `api/src/services/r2Service.ts`
+- [ ] SAST Recon on `src/lib/api.ts`
+- [ ] SAST Recon on `src/lib/utils.ts`
+- [ ] SAST Recon on `src/pages/Index.tsx`
+- [ ] SAST Recon on `src/pages/Login.tsx`
+- [ ] SAST Recon on `src/pages/Signup.tsx`
+- [ ] SAST Recon on `src/pages/History.tsx`
+- [ ] SAST Recon on `src/pages/Pricing.tsx`
+- [ ] SAST Recon on `src/pages/Privacy.tsx`
+- [ ] SAST Recon on `src/pages/Terms.tsx`
+- [ ] SAST Recon on `src/pages/SharePage.tsx`
+- [ ] SAST Recon on `src/App.tsx`
+- [ ] SAST Recon on other identified files in `src/components` and `src/hooks`
+- [ ] Conduct the final review of all findings as per your **Minimizing False Positives** operating principle and generate the final report.

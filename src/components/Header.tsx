@@ -29,6 +29,12 @@ const Header = () => {
 
       <div className="flex items-center gap-4">
         <Link 
+          to="/history" 
+          className="font-ui text-xs text-reading hover:text-active transition-none font-bold"
+        >
+          DASHBOARD
+        </Link>
+        <Link 
           to="/pricing" 
           className="font-ui text-xs text-active border-3 border-active px-3 py-1 hover:bg-active hover:text-surface transition-none font-bold"
         >
@@ -36,12 +42,6 @@ const Header = () => {
         </Link>
         
         <SignedIn>
-          <Link 
-            to="/history" 
-            className="font-ui text-xs text-reading hover:text-active transition-none font-bold"
-          >
-            DASHBOARD
-          </Link>
           <UserButton 
             appearance={{
               elements: {

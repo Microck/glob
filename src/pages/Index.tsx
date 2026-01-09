@@ -12,7 +12,7 @@ import PageLayout from '@/components/PageLayout';
 import History from '@/components/History';
 import FileQueue from '@/components/FileQueue';
 import BulkProgressList, { FileStatus } from '@/components/BulkProgressList';
-import { optimizeFile, downloadFile, type OptimizeResponse } from '@/lib/api';
+import { optimizeFile, downloadFile, type OptimizeResponse, saveToLocalHistory } from '@/lib/api';
 import DebugConsole from '@/components/DebugConsole';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
@@ -147,6 +147,9 @@ const Index = () => {
         });
 
         if (result.status === 'success') {
+          if (!userId) {
+            saveToLocalHistory({ ...result, original_name: files[i].name });
+          }
           setBulkResults(prev => {
             const next = [...prev];
             next[i] = result;
@@ -171,7 +174,7 @@ const Index = () => {
     }
 
     setAppState('complete');
-  }, [files, decimation, dracoLevel, textureQuality, weld, quantize, draco, getToken]);
+  }, [files, decimation, dracoLevel, textureQuality, weld, quantize, draco, getToken, userId]);
 
   const handleModelProgress = useCallback((percent: number) => {
     const p = 40 + (percent * 0.6);
@@ -271,6 +274,9 @@ const Index = () => {
       }, 100);
       
       if (result.status === 'success') {
+        if (!userId) {
+          saveToLocalHistory({ ...result, original_name: file.name });
+        }
         clearInterval(finalInterval);
         setCompressedSize(result.optimizedSize);
         setDownloadUrl(result.downloadUrl);
@@ -288,7 +294,7 @@ const Index = () => {
       console.error('Compression error:', error);
       setAppState('preview');
       }
-  }, [file, decimation, dracoLevel, getToken, mode, simpleTarget, desiredPolygons, facesBefore, weld, quantize, draco, textureQuality]);
+  }, [file, decimation, dracoLevel, getToken, mode, simpleTarget, desiredPolygons, facesBefore, weld, quantize, draco, textureQuality, userId]);
 
   const handleDownload = useCallback(async () => {
     if (!file || !downloadUrl) return;
@@ -372,7 +378,7 @@ const Index = () => {
               maxFiles={userId ? 10 : 1}
             />
           )}
-          {userId && <History userId={userId} />}
+          <History userId={userId || undefined} />
         </div>
       )}
       
@@ -441,7 +447,9 @@ const Index = () => {
                   className="font-display text-5xl text-active tracking-brutal"
                 />
               </div>
-              <ProgressBar progress={progress} message={currentMessage} />
+              <div className="max-w-4xl mx-auto">
+                <ProgressBar progress={progress} message={currentMessage} />
+              </div>
             </>
           )}
           

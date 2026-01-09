@@ -7,7 +7,6 @@ const HistoryPage = () => {
   const { userId, isLoaded } = useAuth();
 
   if (!isLoaded) return null;
-  if (!userId) return <Navigate to="/login" replace />;
 
   return (
     <PageLayout>
@@ -18,20 +17,22 @@ const HistoryPage = () => {
               DASHBOARD
             </h1>
             <p className="font-ui text-sm text-muted mt-4 uppercase tracking-widest">
-              Manage your optimized assets and storage quota.
+              {userId 
+                ? "Manage your optimized assets and storage quota." 
+                : "View your local session optimizations."}
             </p>
           </div>
         </div>
         
         <div className="grid grid-cols-1 gap-8">
-          <History userId={userId} />
+          <History userId={userId || undefined} />
           
           <div className="border-3 border-muted p-6 bg-surface/50">
              <h3 className="font-display text-lg text-reading uppercase tracking-wider mb-3">Storage Info</h3>
              <ul className="space-y-2 font-ui text-[11px] text-muted uppercase tracking-widest">
                <li className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-active" />
-                 Globber tier grants 1GB persistent storage
+                 {userId ? "Globber tier grants 1GB persistent storage" : "Create account for 1GB persistent storage"}
                </li>
                <li className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-active" />
@@ -39,7 +40,7 @@ const HistoryPage = () => {
                </li>
                <li className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-active" />
-                 Delete old models to process larger batches
+                 {userId ? "Delete old models to process larger batches" : "Local session stores up to 10 recent models"}
                </li>
              </ul>
           </div>
