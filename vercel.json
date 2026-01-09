@@ -8,7 +8,13 @@
     },
     {
       "src": "api/vercel.ts",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "node_modules/draco3d/**/*.wasm",
+          "node_modules/meshoptimizer/**/*.wasm"
+        ]
+      }
     }
   ],
   "rewrites": [
