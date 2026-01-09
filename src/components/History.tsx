@@ -57,10 +57,25 @@ const History = ({ userId }: { userId: string }) => {
     }
   };
 
-  if (isLoading) return <div className="font-ui text-xs text-muted uppercase tracking-widest">Loading History...</div>;
-  if (history.length === 0) return null;
+  if (isLoading) return (
+    <div className="w-full mt-12 border-3 border-muted bg-surface p-12 flex flex-col items-center justify-center relative z-10">
+      <div className="font-display text-2xl text-muted animate-pulse uppercase tracking-widest">Loading...</div>
+    </div>
+  );
 
   const usagePercent = storageUsage ? Math.min(100, (storageUsage.used / storageUsage.total) * 100) : 0;
+
+  if (history.length === 0) {
+    return (
+      <div className="w-full mt-12 border-3 border-muted bg-surface p-12 flex flex-col items-center justify-center relative z-10 text-center">
+        <Box className="w-12 h-12 text-muted mb-6 opacity-20" />
+        <h2 className="font-display text-3xl text-reading uppercase tracking-brutal mb-2">Empty Stash</h2>
+        <p className="font-ui text-sm text-muted uppercase tracking-widest max-w-md">
+          You haven't optimized any models yet. Start by dropping a file on the home page.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full mt-12 border-3 border-muted bg-surface p-6 relative z-10">
