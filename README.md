@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<p align="center">glob is a brutalist glb compressor designed for aggressive mesh decimation and geometry optimization.</p>
+<p align="center">glob is a high-performance glb compressor designed for aggressive mesh decimation and geometry optimization.</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-O’Saasy-pink.svg" /></a>
@@ -62,7 +62,7 @@ glob isn't just a file uploader; it is a specialized 3d processing engine built 
 *   **texture optimization:** automatically resizes and compresses textures to a specified maximum resolution. the system identifies oversized textures and scales them down, ensuring your gpu memory isn't wasted on unnecessary pixels.
 *   **bulk processing:** the "globber" tier supports batch optimization, allowing you to queue up to 10 files at once. the backend processes these sequentially and bundles the results into a single zip archive for easy download.
 *   **storage quota:** persistence is handled via supabase, giving premium users a 1gb persistent storage quota. optimized models are stored in cloudflare r2 with signed urls for secure, ephemeral access.
-*   **brutalist ui:** a clean, high-contrast interface designed for efficiency. built with `shadcn/ui` and `tailwind css`, it prioritizes utility and speed over visual fluff.
+*   **efficient ui:** a clean, high-contrast interface designed for maximum productivity. built with `shadcn/ui` and `tailwind css`, it prioritizes utility and speed over visual fluff.
 
 ---
 
