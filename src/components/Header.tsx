@@ -36,6 +36,12 @@ const Header = () => {
         </Link>
         
         <SignedIn>
+          <Link 
+            to="/history" 
+            className="font-ui text-xs text-reading hover:text-active transition-none font-bold"
+          >
+            DASHBOARD
+          </Link>
           <UserButton 
             appearance={{
               elements: {

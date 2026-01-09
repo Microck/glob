@@ -11,6 +11,7 @@ import Terms from "./pages/Terms";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Pricing from "./pages/Pricing";
+import HistoryPage from "./pages/History";
 import NotFound from "./pages/NotFound";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -48,7 +49,10 @@ const App = () => (
         formFieldLabel: "font-ui uppercase text-muted tracking-widest text-[10px]",
         userButtonPopoverCard: "bg-surface border-3 border-muted rounded-none shadow-brutal",
         userButtonPopoverActionButtonText: "font-ui uppercase tracking-widest text-reading",
+        userButtonPopoverActionButtonIcon: "text-active",
         userButtonPopoverFooter: "hidden",
+        userPreviewMainIdentifier: "text-reading",
+        userPreviewSecondaryIdentifier: "text-reading opacity-50",
         dividerRow: "hidden",
         dividerText: "hidden"
       }
@@ -67,6 +71,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
