@@ -45,7 +45,7 @@ const Pricing = () => {
                   Sign Up / Login
                 </Link>
               )}
-              <div className="mt-4 text-[10px] text-muted font-mono uppercase text-center relative z-10">
+              <div className="absolute bottom-2 left-2 text-[10px] text-muted font-mono uppercase z-10">
                 *Shared links last 1 hour
               </div>
           </div>
@@ -77,7 +77,7 @@ const Pricing = () => {
                 src="/finished.svg" 
                 alt="Recommended" 
                 style={{ 
-                  transform: 'translate(-6px, -60px)',
+                  transform: 'translate(-6px, -53.3px)',
                   width: '95px',
                   height: '53px',
                   filter: 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)' 
@@ -100,7 +100,7 @@ const Pricing = () => {
                 <Check className="w-4 h-4 text-active" /> Priority Queue
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
-                <Check className="w-4 h-4 text-active" /> Bulk Convert (up to 10 files)
+                <Check className="w-4 h-4 text-active" /> Bulk Convert
               </li>
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">
                 <Check className="w-4 h-4 text-active" /> Optimization History

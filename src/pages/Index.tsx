@@ -381,10 +381,10 @@ const Index = () => {
         </div>
       )}
       
-      {appState === 'preview' && file && (
+{appState === 'preview' && file && (
         <div className="w-full flex flex-col items-center">
           {isDebugMode ? (
-            <div className="w-full aspect-[16/9] max-w-4xl border-3 border-muted bg-surface flex items-center justify-center">
+            <div className="w-full aspect-[16/9] max-w-4xl border-3 border-muted bg-surface flex items-center justify-center flex-shrink-0">
               <div className="text-center">
                 <div className="font-ui text-sm text-muted mb-2">[DEBUG MODE]</div>
                 <div className="font-display text-2xl text-reading">3D VIEWER PLACEHOLDER</div>
@@ -392,7 +392,9 @@ const Index = () => {
               </div>
             </div>
           ) : (
-            <GLBViewer file={file} onReset={handleReset} />
+            <div className="w-full flex-shrink-0">
+              <GLBViewer file={file} onReset={handleReset} />
+            </div>
           )}
           <div className="mt-0 w-full">
             <Controls

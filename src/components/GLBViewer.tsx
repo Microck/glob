@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState, useRef, useCallback } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback, memo } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
 import * as THREE from 'three';
@@ -186,7 +186,7 @@ const ModelProgressReporter = ({ onProgress }: { onProgress?: (p: number) => voi
   return null;
 };
 
-const GLBViewer = ({ file, onReset, onReady, onProgress }: GLBViewerProps) => {
+const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) => {
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
@@ -305,6 +305,8 @@ const GLBViewer = ({ file, onReset, onReady, onProgress }: GLBViewerProps) => {
       </div>
     </div>
   );
-};
+});
+
+GLBViewer.displayName = 'GLBViewer';
 
 export default GLBViewer;

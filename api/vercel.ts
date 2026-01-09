@@ -1,9 +1,16 @@
 import cors from "cors";
 import express from "express";
+import fs from "node:fs/promises";
 import { optimizeRouter } from "./src/controllers/optimizeController.js";
 import { webhookRouter } from "./src/controllers/webhookController.js";
 
 const app = express();
+
+const TMP_DIR = "/tmp";
+const dirsReady = Promise.all([
+  fs.mkdir(`${TMP_DIR}/uploads`, { recursive: true }),
+  fs.mkdir(`${TMP_DIR}/optimized`, { recursive: true })
+]);
 
 const allowedOrigins = [
   "http://localhost:8080",
@@ -21,6 +28,11 @@ app.use(
     },
   }),
 );
+
+app.use(async (_req, _res, next) => {
+  await dirsReady;
+  next();
+});
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
