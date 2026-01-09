@@ -14,17 +14,8 @@
 - [x] SAST Recon on `api/src/services/gltfService.ts`
   - [ ] Investigate insecure deserialization and DoS in `readDocument` and `processGlb` on lines 78, 143.
 - [x] SAST Recon on `api/src/services/polarService.ts`
-- [ ] SAST Recon on `api/src/services/r2Service.ts`
-- [ ] SAST Recon on `src/lib/api.ts`
-- [ ] SAST Recon on `src/lib/utils.ts`
-- [ ] SAST Recon on `src/pages/Index.tsx`
-- [ ] SAST Recon on `src/pages/Login.tsx`
-- [ ] SAST Recon on `src/pages/Signup.tsx`
-- [ ] SAST Recon on `src/pages/History.tsx`
-- [ ] SAST Recon on `src/pages/Pricing.tsx`
-- [ ] SAST Recon on `src/pages/Privacy.tsx`
-- [ ] SAST Recon on `src/pages/Terms.tsx`
-- [ ] SAST Recon on `src/pages/SharePage.tsx`
-- [ ] SAST Recon on `src/App.tsx`
-- [ ] SAST Recon on other identified files in `src/components` and `src/hooks`
+- [x] SAST Recon on `api/src/services/r2Service.ts`
+  - [ ] Investigate arbitrary R2 object access/deletion via manipulated metadata keys on lines 15, 25, 34.
+- [x] SAST Recon on `src/lib/api.ts`
+- [x] SAST Recon on `src/pages/SharePage.tsx`
 - [ ] Conduct the final review of all findings as per your **Minimizing False Positives** operating principle and generate the final report.
