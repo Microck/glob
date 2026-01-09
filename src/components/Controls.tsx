@@ -60,7 +60,7 @@ const NumberInput = ({
   step?: number,
   label?: string
 }) => {
-  const handleIncrement = (e: React.MouseEvent) => {
+  const handleIncrement = (e: React.MouseEvent | React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const current = Number(value) || 0;
@@ -68,7 +68,7 @@ const NumberInput = ({
     onChange(Math.min(max, next));
   };
 
-  const handleDecrement = (e: React.MouseEvent) => {
+  const handleDecrement = (e: React.MouseEvent | React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const current = Number(value) || 0;
@@ -89,8 +89,8 @@ const NumberInput = ({
       <div className="flex border-3 border-muted bg-surface overflow-hidden">
         <button 
           type="button"
-          onMouseDown={handleDecrement}
-          className="px-4 py-2 hover:bg-active hover:text-surface transition-none border-r-3 border-muted active:translate-y-0.5 select-none"
+          onPointerDown={handleDecrement}
+          className="px-4 py-2 hover:bg-active hover:text-surface transition-none border-r-3 border-muted active:translate-y-0.5 select-none pointer-events-auto"
         >
           <Minus className="w-4 h-4" />
         </button>
@@ -102,8 +102,8 @@ const NumberInput = ({
         />
         <button 
           type="button"
-          onMouseDown={handleIncrement}
-          className="px-4 py-2 hover:bg-active hover:text-surface transition-none border-l-3 border-muted active:translate-y-0.5 select-none"
+          onPointerDown={handleIncrement}
+          className="px-4 py-2 hover:bg-active hover:text-surface transition-none border-l-3 border-muted active:translate-y-0.5 select-none pointer-events-auto"
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -256,7 +256,7 @@ const Controls = ({
                       onChange={onDesiredSizeChange}
                       min={0.01}
                       max={Number(originalSizeMB)}
-                      step={0.1}
+                      step={1}
                     />
                     <div className="font-ui text-[9px] text-muted uppercase mt-2 tracking-tighter">Approximate. Aggressive texture compression applied.</div>
                   </div>
@@ -290,7 +290,7 @@ const Controls = ({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-muted cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal">
+                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal z-50">
                           The target percentage of polygons to retain. Lower values result in fewer faces.
                         </TooltipContent>
                       </Tooltip>
@@ -318,7 +318,7 @@ const Controls = ({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-muted cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal">
+                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal z-50">
                           Compression intensity level (1-10). Higher values reduce file size but increase decoding time.
                         </TooltipContent>
                       </Tooltip>
@@ -378,7 +378,7 @@ const Controls = ({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-muted cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal">
+                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal z-50">
                           Merges equivalent vertices to reduce index count.
                         </TooltipContent>
                       </Tooltip>
@@ -395,7 +395,7 @@ const Controls = ({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-muted cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal">
+                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal z-50">
                           Reduces precision of vertex attributes to save space.
                         </TooltipContent>
                       </Tooltip>
@@ -412,7 +412,7 @@ const Controls = ({
                         <TooltipTrigger asChild>
                           <Info className="w-3.5 h-3.5 text-muted cursor-help" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal">
+                        <TooltipContent side="top" className="bg-surface border-3 border-muted text-reading font-ui text-[10px] p-3 max-w-[200px] rounded-none shadow-brutal z-50">
                           High-performance mesh compression by Google.
                         </TooltipContent>
                       </Tooltip>

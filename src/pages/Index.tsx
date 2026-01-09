@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from "@clerk/clerk-react";
 import DropZone from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
@@ -10,6 +10,7 @@ import DebugMenu from '@/components/DebugMenu';
 import PageLayout from '@/components/PageLayout';
 import History from '@/components/History';
 import { optimizeFile, downloadFile } from '@/lib/api';
+import DebugConsole from '@/components/DebugConsole';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
@@ -46,6 +47,17 @@ const Index = () => {
   const [verticesAfter, setVerticesAfter] = useState(0);
   const [isDebugMode, setIsDebugMode] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
+  const [isDebugConsoleVisible, setIsDebugConsoleVisible] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '`') {
+        setIsDebugConsoleVisible(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleFileSelect = useCallback((selectedFile: File) => {
     setFile(selectedFile);
@@ -100,7 +112,7 @@ const Index = () => {
     
     try {
       const token = await getToken();
-      const result = await optimizeFile(file, {
+      const settings = {
         decimateRatio: mode === 'simple' 
           ? (simpleTarget === 'polygons' ? Math.max(0.01, Math.min(1, desiredPolygons / (facesBefore || 1000))) : 0.8) 
           : decimation,
@@ -109,7 +121,9 @@ const Index = () => {
         weld: mode === 'advanced' ? weld : true,
         quantize: mode === 'advanced' ? quantize : true,
         draco: mode === 'advanced' ? draco : true,
-      }, token || undefined, (percent) => {
+      };
+
+      const result = await optimizeFile(file, settings, token || undefined, (percent) => {
         setProgress(percent); 
         if (percent >= 50) {
           setCurrentMessage('OPTIMIZING...');
@@ -188,6 +202,25 @@ const Index = () => {
 
   return (
     <PageLayout disableScroll appState={appState} onStateChange={handleDebugStateChange}>
+      <DebugConsole 
+        isVisible={isDebugConsoleVisible}
+        currentMessage={currentMessage}
+        progress={progress}
+        settings={{
+          mode,
+          decimation,
+          dracoLevel,
+          textureQuality,
+          weld,
+          quantize,
+          draco
+        }}
+        stats={file ? {
+          originalSize: file.size,
+          originalPolygons: facesBefore
+        } : undefined}
+      />
+
       {appState === 'idle' && (
         <div className="w-full flex flex-col items-center">
           <DropZone 
