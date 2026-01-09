@@ -27,3 +27,4 @@ tmp
 *.sln
 *.sw?
 .vercel
+*.glb
