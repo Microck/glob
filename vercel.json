@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 60
-    }
-  },
   "builds": [
     {
       "src": "package.json",
@@ -15,6 +10,7 @@
       "src": "api/index.ts",
       "use": "@vercel/node",
       "config": {
+        "maxDuration": 60,
         "includeFiles": [
           "api/src/**/*",
           "node_modules/draco3d/**/*.wasm",
