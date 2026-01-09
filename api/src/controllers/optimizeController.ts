@@ -9,8 +9,8 @@ import multer from "multer";
 import { z } from "zod";
 
 import { processGlb } from "../services/gltfService.js";
-import { getAccessLevel } from "../services/entitlementService.js";
-import { saveOptimization, getOptimizations } from "../services/dbService.js";
+import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
+import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
 import { uploadToR2, getDownloadUrl, deleteFromR2 } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 
@@ -74,6 +74,52 @@ optimizeRouter.get("/history", async (req: Request, res: Response) => {
   }
 });
 
+optimizeRouter.get("/usage", async (req: Request, res: Response) => {
+  const memberId = req.headers["x-member-id"] as string;
+  if (!memberId) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const usage = await getStorageUsage(memberId);
+    return res.json({ used: usage, total: 1024 * 1024 * 1024 });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to fetch usage" });
+  }
+});
+
+optimizeRouter.delete("/history/:id", async (req: Request, res: Response) => {
+  const memberId = req.headers["x-member-id"] as string;
+  const id = req.params.id;
+  
+  if (!memberId) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const record = await deleteOptimization(id, memberId);
+    
+    const downloadUrl = record.download_url;
+    const jobId = downloadUrl.split('/').pop();
+
+    if (jobId) {
+       const metaPath = path.join(OPTIMIZED_DIR, `${jobId}.json`);
+       try {
+         const metaContent = await fs.readFile(metaPath, 'utf-8');
+         const metadata = JSON.parse(metaContent);
+         if (metadata.storageKey) {
+            await deleteFromR2(metadata.storageKey).catch(() => undefined);
+         }
+         await fs.unlink(metaPath).catch(() => undefined);
+       } catch {
+         // Metadata might be gone already, ignore
+       }
+    }
+
+    await decrementStorageUsage(memberId, record.optimized_size);
+    
+    return res.json({ status: "success" });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to delete optimization" });
+  }
+});
+
 setInterval(async () => {
   try {
     const files = await fs.readdir(OPTIMIZED_DIR);
@@ -114,6 +160,20 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
   const memberId = req.headers["x-member-id"] as string;
   const access = await getAccessLevel(memberId);
   
+  if (access.hasAccess && memberId) {
+    const currentUsage = await getStorageUsage(memberId);
+    const estimatedNewTotal = currentUsage + req.file.size;
+    const STORAGE_QUOTA = 1024 * 1024 * 1024;
+
+    if (estimatedNewTotal > STORAGE_QUOTA) {
+      await fs.unlink(req.file.path).catch(() => undefined);
+      return res.status(413).json({
+        status: "error",
+        message: "Storage quota exceeded (1GB). Delete old files to free up space."
+      });
+    }
+  }
+
   const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 10 * 60 * 1000;
 
   const originalSize = req.file.size;

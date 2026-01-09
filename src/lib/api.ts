@@ -107,3 +107,30 @@ export async function downloadFile(url: string, filename: string): Promise<void>
     throw error;
   }
 }
+
+export async function deleteOptimization(id: string, memberId: string): Promise<void> {
+  const response = await fetch(`/api/history/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'x-member-id': memberId
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to delete optimization');
+  }
+}
+
+export async function getStorageUsage(memberId: string): Promise<{ used: number; total: number }> {
+  const response = await fetch(`/api/usage`, {
+    headers: {
+      'x-member-id': memberId
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch storage usage');
+  }
+  
+  return response.json();
+}
