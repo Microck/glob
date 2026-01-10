@@ -61,6 +61,14 @@ export async function optimizeFile(
         xhr.send(file);
       });
 
+      let simulatedProgress = 40;
+      const progressInterval = setInterval(() => {
+        simulatedProgress += 2;
+        if (simulatedProgress <= 90 && onProgress) {
+          onProgress(simulatedProgress);
+        }
+      }, 500);
+
       const optimizeResponse = await fetch(`${API_BASE}/api/optimize`, {
         method: 'POST',
         headers: {
@@ -73,6 +81,8 @@ export async function optimizeFile(
           originalName: file.name
         })
       });
+
+      clearInterval(progressInterval);
 
       if (!optimizeResponse.ok) {
         const error = await optimizeResponse.json();
@@ -145,7 +155,8 @@ export async function optimizeFile(
 
 export async function downloadFile(url: string, filename: string): Promise<void> {
   try {
-    const response = await fetch(url);
+    const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
+    const response = await fetch(fullUrl);
     if (!response.ok) {
       throw new Error('Failed to download file');
     }

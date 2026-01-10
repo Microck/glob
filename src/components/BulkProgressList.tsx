@@ -1,5 +1,7 @@
 import { OptimizeResponse } from '@/lib/api';
 import { Loader2, Check, X, Clock, Eye } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 export type FileStatus = 'pending' | 'processing' | 'completed' | 'error';
 
@@ -12,10 +14,31 @@ interface BulkProgressListProps {
 }
 
 const BulkProgressList = ({ files, status, currentProgress, results, onView }: BulkProgressListProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.fromTo(containerRef.current,
+        { y: 30, opacity: 0, scale: 0.98 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'power3.out' }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (listRef.current?.children) {
+      gsap.fromTo(listRef.current.children,
+        { x: -15, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.25, stagger: 0.03, ease: 'power2.out' }
+      );
+    }
+  }, [files.length]);
+
   return (
-    <div className="w-full max-w-2xl border-3 border-muted bg-surface p-4">
+    <div ref={containerRef} className="w-full max-w-2xl border-3 border-muted bg-surface p-4">
       <div className="font-display text-xl mb-4 text-reading">BATCH PROGRESS</div>
-      <div className="space-y-2">
+      <div ref={listRef} className="space-y-2">
         {files.map((file, index) => {
            const s = status[index];
            const isProcessing = s === 'processing';

@@ -38,10 +38,11 @@ const Model = ({ url, wireframe = false, clay = false }: ModelProps & { clay?: b
             });
           } else if (clay) {
             child.material = new THREE.MeshStandardMaterial({
-              color: 0xeeeeee,
-              roughness: 0.8,
-              metalness: 0.1,
-              flatShading: false
+              color: 0xd4d4d4,
+              roughness: 0.6,
+              metalness: 0.0,
+              flatShading: false,
+              envMapIntensity: 0.3
             });
           } else {
             if (Array.isArray(child.material)) {
@@ -76,7 +77,8 @@ const SHARED_LIGHTING = {
   ambient: 0.7,
   directional: 1.2,
   point: 0.5,
-  background: 'hsl(273, 12%, 20%)'
+  background: 'hsl(273, 12%, 20%)',
+  optimizedBackground: 'hsl(273, 12%, 12%)'
 };
 
 interface ComparisonViewerProps {
@@ -147,7 +149,7 @@ const ComparisonViewer = ({
     navigator.clipboard.writeText(shareUrl);
     toast({
       title: "LINK COPIED",
-      description: "Share link copied to clipboard (expires in 48 hours for globbers)",
+      description: "Link expires in 1 hour. Upgrade to Globber for 48h links.",
     });
   };
 
@@ -375,7 +377,7 @@ const ComparisonViewer = ({
           </div>
           <Canvas
             camera={{ position: [3, 3, 3], fov: 45 }}
-            style={{ background: SHARED_LIGHTING.background }}
+            style={{ background: SHARED_LIGHTING.optimizedBackground }}
           >
             <Suspense fallback={null}>
               <ambientLight intensity={SHARED_LIGHTING.ambient} />

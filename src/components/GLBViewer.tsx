@@ -1,6 +1,7 @@
-import { Suspense, useEffect, useState, useRef, useCallback, memo } from 'react';
+import { Suspense, useEffect, useState, useRef, useCallback, memo, useMemo } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
+import { Switch } from '@/components/ui/switch';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import LoadingIndicator from './LoadingIndicator';
@@ -8,6 +9,9 @@ import LoadingIndicator from './LoadingIndicator';
 interface ModelProps {
   url: string;
   onLoaded?: () => void;
+  wireframe?: boolean;
+  clay?: boolean;
+  roughness?: boolean;
 }
 
 interface CameraControllerProps {
@@ -93,24 +97,69 @@ const CameraController = ({ scene, controlsRef, resetTrigger }: CameraController
   return null;
 };
 
-const Model = ({ url, onLoaded }: ModelProps) => {
+const Model = ({ url, onLoaded, wireframe = false, clay = false, roughness = false }: ModelProps) => {
   const { scene } = useGLTF(url);
   const [isModelReady, setIsModelReady] = useState(false);
+  const originalMaterials = useRef<Map<THREE.Mesh, THREE.Material | THREE.Material[]>>(new Map());
   
   useEffect(() => {
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
+        if (!originalMaterials.current.has(child) && child.material) {
+          originalMaterials.current.set(child, child.material);
+        }
+        
         if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach((mat) => {
-              mat.transparent = false;
-              mat.opacity = 1;
-              mat.side = THREE.FrontSide;
+          if (wireframe) {
+            child.material = new THREE.MeshBasicMaterial({ 
+              color: 0xFC6E83, 
+              wireframe: true,
+              wireframeLinewidth: 1
             });
+          } else if (clay) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: 0xd4d4d4,
+              roughness: 0.6,
+              metalness: 0.0,
+              flatShading: false,
+              envMapIntensity: 0.3
+            });
+          } else if (roughness) {
+            const origMat = originalMaterials.current.get(child);
+            if (origMat && !Array.isArray(origMat) && origMat instanceof THREE.MeshStandardMaterial) {
+              child.material = origMat.clone();
+              (child.material as THREE.MeshStandardMaterial).roughness = 1.0;
+              (child.material as THREE.MeshStandardMaterial).metalness = 0.0;
+            } else if (Array.isArray(origMat)) {
+              child.material = origMat.map(m => {
+                if (m instanceof THREE.MeshStandardMaterial) {
+                  const cloned = m.clone();
+                  cloned.roughness = 1.0;
+                  cloned.metalness = 0.0;
+                  return cloned;
+                }
+                return m;
+              });
+            } else {
+              const orig = originalMaterials.current.get(child);
+              if (orig) child.material = orig;
+            }
           } else {
-            child.material.transparent = false;
-            child.material.opacity = 1;
-            child.material.side = THREE.FrontSide;
+            const orig = originalMaterials.current.get(child);
+            if (orig) {
+              child.material = orig;
+            }
+            if (Array.isArray(child.material)) {
+              child.material.forEach((mat) => {
+                mat.transparent = false;
+                mat.opacity = 1;
+                mat.side = THREE.FrontSide;
+              });
+            } else {
+              child.material.transparent = false;
+              child.material.opacity = 1;
+              child.material.side = THREE.FrontSide;
+            }
           }
         }
         child.visible = true;
@@ -128,7 +177,7 @@ const Model = ({ url, onLoaded }: ModelProps) => {
     if (onLoaded) {
       onLoaded();
     }
-  }, [scene, url, onLoaded]);
+  }, [scene, url, onLoaded, wireframe, clay, roughness]);
 
   if (!isModelReady) {
     return null;
@@ -142,9 +191,12 @@ interface SceneContentProps {
   onModelLoaded: () => void;
   controlsRef: React.RefObject<React.ElementRef<typeof OrbitControls>>;
   resetTrigger: number;
+  wireframe?: boolean;
+  clay?: boolean;
+  roughness?: boolean;
 }
 
-const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger }: SceneContentProps) => {
+const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger, wireframe, clay, roughness }: SceneContentProps) => {
   const { scene } = useGLTF(objectUrl);
   
   return (
@@ -153,7 +205,7 @@ const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger }: S
       <directionalLight position={[10, 10, 5]} intensity={1.2} />
       <pointLight position={[-10, -10, -10]} intensity={0.5} />
       <Center>
-        <Model url={objectUrl} onLoaded={onModelLoaded} />
+        <Model url={objectUrl} onLoaded={onModelLoaded} wireframe={wireframe} clay={clay} roughness={roughness} />
       </Center>
       <CameraController scene={scene} controlsRef={controlsRef} resetTrigger={resetTrigger} />
       <OrbitControls 
@@ -190,6 +242,9 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
+  const [wireframe, setWireframe] = useState(false);
+  const [clay, setClay] = useState(false);
+  const [roughness, setRoughness] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
 
@@ -288,6 +343,9 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
             onModelLoaded={handleModelLoaded}
             controlsRef={controlsRef}
             resetTrigger={resetTrigger}
+            wireframe={wireframe}
+            clay={clay}
+            roughness={roughness}
           />
         </Suspense>
       </Canvas>
@@ -298,10 +356,54 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
         </div>
       )}
       
-      <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-surface/80 border-t-3 border-muted">
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-2 bg-surface/80 border-t-3 border-muted flex items-center justify-between">
         <span className="font-ui text-sm text-muted">
           SIZE: {(file.size / 1024 / 1024).toFixed(2)} MB
         </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Switch 
+              id="wireframe-preview" 
+              checked={wireframe} 
+              onCheckedChange={(checked) => {
+                setWireframe(checked);
+                if (checked) { setClay(false); setRoughness(false); }
+              }} 
+              className="data-[state=checked]:bg-active scale-75"
+            />
+            <label htmlFor="wireframe-preview" className="font-ui text-[10px] text-muted cursor-pointer uppercase tracking-wider">
+              Wire
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch 
+              id="clay-preview" 
+              checked={clay} 
+              onCheckedChange={(checked) => {
+                setClay(checked);
+                if (checked) { setWireframe(false); setRoughness(false); }
+              }} 
+              className="data-[state=checked]:bg-active scale-75"
+            />
+            <label htmlFor="clay-preview" className="font-ui text-[10px] text-muted cursor-pointer uppercase tracking-wider">
+              Clay
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch 
+              id="roughness-preview" 
+              checked={roughness} 
+              onCheckedChange={(checked) => {
+                setRoughness(checked);
+                if (checked) { setWireframe(false); setClay(false); }
+              }} 
+              className="data-[state=checked]:bg-active scale-75"
+            />
+            <label htmlFor="roughness-preview" className="font-ui text-[10px] text-muted cursor-pointer uppercase tracking-wider">
+              Matte
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -79,7 +79,8 @@ const NumberInput = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     if (!isNaN(val)) {
-      onChange(val);
+      const rounded = step >= 1000 ? Math.round(val / step) * step : val;
+      onChange(Math.max(min, Math.min(max, rounded)));
     }
   };
 

@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useSafeAuth } from "@/hooks/use-safe-auth";
 import { useToast } from "@/hooks/use-toast";
+import gsap from 'gsap';
 import DropZone from '@/components/DropZone';
 import GLBViewer from '@/components/GLBViewer';
 import Controls from '@/components/Controls';
@@ -57,6 +58,18 @@ const Index = () => {
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [isDebugConsoleVisible, setIsDebugConsoleVisible] = useState(false);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const prevStateRef = useRef<AppState>(appState);
+
+  useEffect(() => {
+    if (contentRef.current && prevStateRef.current !== appState) {
+      gsap.fromTo(contentRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+      );
+      prevStateRef.current = appState;
+    }
+  }, [appState]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -92,8 +105,8 @@ setAppState('processing');
     
     const mainFile = filesToProcess[0];
     
-    setDesiredSize(Number((mainFile.size / 1024 / 1024 * 0.8).toFixed(2)));
-    setDesiredPolygons(10000); 
+    setDesiredSize(Math.floor(mainFile.size / 1024 / 1024 * 0.8));
+    setDesiredPolygons(Math.floor(10000 / 1000) * 1000); 
     
     let p = 0;
     const interval = setInterval(() => {
@@ -357,6 +370,7 @@ const handleModelLoaded = useCallback(() => {
         } : undefined}
       />
 
+      <div ref={contentRef}>
       {appState === 'idle' && (
         <div className="w-full flex flex-col items-center">
           {files.length > 0 ? (
@@ -522,6 +536,7 @@ const handleModelLoaded = useCallback(() => {
         )
       )
     )}
+      </div>
     </PageLayout>
   );
 };

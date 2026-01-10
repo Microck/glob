@@ -1,23 +1,37 @@
-import { useState, useCallback, Suspense } from 'react';
+import { useState, useCallback, Suspense, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
 import PageLayout from '@/components/PageLayout';
 
 const SharedModel = ({ url, onError }: { url: string, onError: () => void }) => {
-  const { scene } = useGLTF(url);
-  return <primitive object={scene} />;
+  try {
+    const { scene } = useGLTF(url);
+    return <primitive object={scene} />;
+  } catch (e) {
+    onError();
+    return null;
+  }
 };
 
 const SharePage = () => {
   const { id } = useParams();
   const [error, setError] = useState<string | null>(null);
 
-  const modelUrl = `/api/download/${id}`;
+  const apiBase = import.meta.env.VITE_API_URL || '';
+  const modelUrl = `${apiBase}/api/download/${id}`;
 
   const handleError = useCallback(() => {
     setError("EXPIRED OR NOT FOUND");
   }, []);
+
+  useEffect(() => {
+    fetch(modelUrl, { method: 'HEAD' })
+      .then(res => {
+        if (!res.ok) setError("EXPIRED OR NOT FOUND");
+      })
+      .catch(() => setError("EXPIRED OR NOT FOUND"));
+  }, [modelUrl]);
 
   return (
     <PageLayout disableScroll>

@@ -1,4 +1,6 @@
 import { X, FileBox, ArrowRight } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
 
 interface FileQueueProps {
   files: File[];
@@ -17,9 +19,29 @@ const formatFileSize = (bytes: number): string => {
 
 const FileQueue = ({ files, onRemove, onClear, onStart }: FileQueueProps) => {
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.fromTo(containerRef.current,
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (itemsRef.current) {
+      gsap.fromTo(itemsRef.current.children,
+        { x: -20, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.3, stagger: 0.05, ease: 'power2.out' }
+      );
+    }
+  }, [files.length]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div ref={containerRef} className="w-full max-w-4xl mx-auto flex flex-col gap-6">
       <div className="flex items-center justify-between border-b-3 border-muted pb-4">
         <div>
           <h2 className="font-display text-3xl text-reading tracking-brutal leading-none">
@@ -36,7 +58,7 @@ const FileQueue = ({ files, onRemove, onClear, onStart }: FileQueueProps) => {
         </div>
       </div>
 
-      <div className="grid gap-3">
+      <div ref={itemsRef} className="grid gap-3">
         {files.map((file, index) => (
           <div 
             key={`${file.name}-${index}`}

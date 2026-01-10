@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { LogIn } from "lucide-react";
 import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/clerk-react";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
 
 const CLERK_ENABLED = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
@@ -43,9 +45,27 @@ const ClerkAuthSection = () => {
 };
 
 const Header = () => {
+  const headerRef = useRef<HTMLElement>(null);
+  const logoRef = useRef<HTMLAnchorElement>(null);
+  const navRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    
+    tl.fromTo(logoRef.current,
+      { x: -30, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.5 }
+    )
+    .fromTo(navRef.current?.children || [],
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.1 },
+      '-=0.3'
+    );
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 p-6 flex justify-between items-center">
-      <Link to="/" className="flex items-center group">
+    <header ref={headerRef} className="fixed top-0 left-0 right-0 z-40 p-6 flex justify-between items-center">
+      <Link ref={logoRef} to="/" className="flex items-center group">
         <img 
           src="/glob.svg" 
           alt="glob" 
@@ -67,7 +87,7 @@ const Header = () => {
         </h1>
       </Link>
 
-      <div className="flex items-center gap-4">
+      <div ref={navRef} className="flex items-center gap-4">
         <Link 
           to="/history" 
           className="font-ui text-xs text-reading hover:text-active transition-none font-bold"
