@@ -243,7 +243,8 @@ optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res
     };
     await fs.writeFile(path.join(OPTIMIZED_DIR, `${jobId}.json`), JSON.stringify(metadata));
 
-    const downloadUrl = `${req.protocol}://${req.get("host")}/api/download/${jobId}`;
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const downloadUrl = `${protocol}://${req.get("host")}/api/download/${jobId}`;
 
     if (memberId && access.hasAccess) {
       await saveOptimization({
