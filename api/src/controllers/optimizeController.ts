@@ -11,7 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
-import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured, checkObjectExists } from "../services/r2Service.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
@@ -20,6 +20,7 @@ const __dirname = path.dirname(__filename);
 
 const API_ROOT = path.resolve(__dirname, "..", "..", "..");
 const TMP_DIR = process.env.VERCEL ? "/tmp" : path.join(API_ROOT, "tmp");
+const UPLOAD_DIR = path.join(TMP_DIR, "uploads");
 const OPTIMIZED_DIR = path.join(TMP_DIR, "optimized");
 const METADATA_PREFIX = "optimized";
 
@@ -376,11 +377,8 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
   if (!metadata) {
     if (isR2Configured()) {
       const fallbackKey = `${METADATA_PREFIX}/${id}.glb`;
-      const exists = await checkObjectExists(fallbackKey);
-      if (exists) {
-        const downloadUrl = await getDownloadUrl(fallbackKey);
-        return res.redirect(downloadUrl);
-      }
+      const downloadUrl = await getDownloadUrl(fallbackKey);
+      return res.redirect(downloadUrl);
     }
     return res.status(404).json({ status: "error", message: "File not found" });
   }
