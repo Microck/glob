@@ -13,6 +13,7 @@ import { getAccessLevel, getStorageUsage } from "../services/entitlementService.
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
 import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2 } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,7 +66,13 @@ export const optimizeRouter = express.Router();
 optimizeRouter.get("/get-upload-url", async (req: Request, res: Response) => {
   try {
     const filename = req.query.filename as string || "model.glb";
-    const ext = path.extname(filename).toLowerCase() || ".glb";
+    let ext = path.extname(filename).toLowerCase();
+    
+    // Strict whitelist for extensions to prevent XSS/other attacks
+    if (ext !== ".glb" && ext !== ".gltf") {
+        ext = ".glb";
+    }
+    
     const jobId = randomUUID();
     const key = `uploads/${jobId}${ext}`;
     const uploadUrl = await getUploadUrl(key);
@@ -76,9 +83,8 @@ optimizeRouter.get("/get-upload-url", async (req: Request, res: Response) => {
   }
 });
 
-optimizeRouter.get("/history", async (req: Request, res: Response) => {
-  const memberId = req.headers["x-member-id"] as string;
-  if (!memberId) return res.status(401).json({ error: "Unauthorized" });
+optimizeRouter.get("/history", authMiddleware, async (req: Request, res: Response) => {
+  const memberId = (req as any).memberId;
 
   try {
     const history = await getOptimizations(memberId);
@@ -88,9 +94,8 @@ optimizeRouter.get("/history", async (req: Request, res: Response) => {
   }
 });
 
-optimizeRouter.get("/usage", async (req: Request, res: Response) => {
-  const memberId = req.headers["x-member-id"] as string;
-  if (!memberId) return res.status(401).json({ error: "Unauthorized" });
+optimizeRouter.get("/usage", authMiddleware, async (req: Request, res: Response) => {
+  const memberId = (req as any).memberId;
 
   try {
     const usage = await getStorageUsage(memberId);
@@ -100,11 +105,9 @@ optimizeRouter.get("/usage", async (req: Request, res: Response) => {
   }
 });
 
-optimizeRouter.delete("/history/:id", async (req: Request, res: Response) => {
-  const memberId = req.headers["x-member-id"] as string;
+optimizeRouter.delete("/history/:id", authMiddleware, async (req: Request, res: Response) => {
+  const memberId = (req as any).memberId;
   const id = req.params.id;
-  
-  if (!memberId) return res.status(401).json({ error: "Unauthorized" });
 
   try {
     const record = await deleteOptimization(id, memberId);
@@ -166,14 +169,21 @@ setInterval(async () => {
   }
 }, 60 * 60 * 1000); 
 
-optimizeRouter.post("/optimize", upload.single("file"), async (req: Request, res: Response) => {
+optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), async (req: Request, res: Response) => {
   const storageKey = req.body.storageKey as string;
   
   if (!req.file && !storageKey) {
     return res.status(400).json({ status: "error", message: "Missing file or storage key" });
   }
 
-  const memberId = req.headers["x-member-id"] as string;
+  // Validate storageKey to prevent path traversal
+  if (storageKey) {
+    if (storageKey.includes("..") || path.isAbsolute(storageKey) || !/^[a-zA-Z0-9_\-\.\/]+$/.test(storageKey)) {
+        return res.status(400).json({ status: "error", message: "Invalid storage key" });
+    }
+  }
+
+  const memberId = (req as any).memberId;
   const access = await getAccessLevel(memberId);
   
   const fileSize = req.file ? req.file.size : 0;
@@ -322,6 +332,12 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
 
 optimizeRouter.get("/local-download/:key", async (req: Request, res: Response) => {
   const key = req.params.key;
+  
+  // Validate key to prevent path traversal
+  if (key.includes("..") || path.isAbsolute(key) || !/^[a-zA-Z0-9_\-\.]+$/.test(key)) {
+     return res.status(400).json({ status: "error", message: "Invalid file key" });
+  }
+
   const filePath = path.join(OPTIMIZED_DIR, key);
 
   try {
@@ -337,6 +353,11 @@ optimizeRouter.get("/local-download/:key", async (req: Request, res: Response) =
 
 optimizeRouter.post("/activate-share/:id", async (req: Request, res: Response) => {
   const id = req.params.id;
+  
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+      return res.status(400).json({ status: "error", message: "Invalid id" });
+  }
+
   const metaPath = path.join(OPTIMIZED_DIR, `${id}.json`);
 
   try {

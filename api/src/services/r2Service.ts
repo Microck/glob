@@ -73,6 +73,9 @@ export async function getUploadUrl(key: string, expiresIn: number = 3600) {
 export async function getFromR2(key: string): Promise<Buffer> {
   const r2 = getR2();
   if (!r2) {
+    if (key.includes("..") || path.isAbsolute(key)) {
+        throw new Error("Invalid key");
+    }
     const localPath = path.join(OPTIMIZED_DIR, key);
     return await fs.readFile(localPath);
   }

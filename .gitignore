@@ -28,3 +28,5 @@ tmp
 *.sw?
 .vercel
 *.glb
+
+SECURITY_REPORT.md

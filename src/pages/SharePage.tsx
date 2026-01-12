@@ -26,11 +26,19 @@ const SharePage = () => {
   }, []);
 
   useEffect(() => {
+    let isActive = true;
     fetch(modelUrl, { method: 'HEAD' })
       .then(res => {
-        if (!res.ok) setError("EXPIRED OR NOT FOUND");
+        if (!isActive) return;
+        if (res.status === 404 || res.status === 410) {
+          setError("EXPIRED OR NOT FOUND");
+        }
       })
-      .catch(() => setError("EXPIRED OR NOT FOUND"));
+      .catch(() => undefined);
+
+    return () => {
+      isActive = false;
+    };
   }, [modelUrl]);
 
   return (

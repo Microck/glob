@@ -25,7 +25,7 @@ const Login = () => {
 
   return (
     <PageLayout showContentOnly>
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex w-full flex-col items-center justify-center">
         <SignIn />
       </div>
     </PageLayout>

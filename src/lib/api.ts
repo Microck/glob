@@ -156,20 +156,19 @@ export async function optimizeFile(
 export async function downloadFile(url: string, filename: string): Promise<void> {
   try {
     const fullUrl = url.startsWith('http') ? url : `${API_BASE}${url}`;
-    const response = await fetch(fullUrl);
-    if (!response.ok) {
-      throw new Error('Failed to download file');
-    }
+    const resolvedUrl = new URL(fullUrl, window.location.href);
+    const isSameOrigin = resolvedUrl.origin === window.location.origin;
 
-    const blob = await response.blob();
-    const downloadUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(downloadUrl);
+    const link = document.createElement('a');
+    link.href = resolvedUrl.toString();
+    if (isSameOrigin) {
+      link.download = filename;
+    }
+    link.rel = 'noopener';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } catch (error) {
     console.error('Download error:', error);
     toast({
@@ -185,7 +184,7 @@ export async function deleteOptimization(id: string, memberId: string): Promise<
   const response = await fetch(`${API_BASE}/api/history/${id}`, {
     method: 'DELETE',
     headers: {
-      'x-member-id': memberId
+      'Authorization': `Bearer ${memberId}`
     }
   });
 
@@ -197,7 +196,7 @@ export async function deleteOptimization(id: string, memberId: string): Promise<
 export async function getStorageUsage(memberId: string): Promise<{ used: number; total: number }> {
   const response = await fetch(`${API_BASE}/api/usage`, {
     headers: {
-      'x-member-id': memberId
+      'Authorization': `Bearer ${memberId}`
     }
   });
   

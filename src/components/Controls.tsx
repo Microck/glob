@@ -60,6 +60,17 @@ const NumberInput = ({
   step?: number,
   label?: string
 }) => {
+  const [inputValue, setInputValue] = useState(String(value));
+
+  useEffect(() => {
+    setInputValue(String(value));
+  }, [value]);
+
+  const clampValue = useCallback((raw: number) => {
+    const rounded = step >= 1000 ? Math.round(raw / step) * step : raw;
+    return Math.max(min, Math.min(max, rounded));
+  }, [max, min, step]);
+
   const handleIncrement = (e: React.MouseEvent | React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -76,11 +87,22 @@ const NumberInput = ({
     onChange(Math.max(min, next));
   };
 
+  const commitValue = useCallback(() => {
+    const parsed = parseFloat(inputValue);
+    if (Number.isNaN(parsed)) {
+      setInputValue(String(value));
+      return;
+    }
+    const nextValue = clampValue(parsed);
+    onChange(nextValue);
+  }, [clampValue, inputValue, onChange, value]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    if (!isNaN(val)) {
-      const rounded = step >= 1000 ? Math.round(val / step) * step : val;
-      onChange(Math.max(min, Math.min(max, rounded)));
+    const next = e.target.value;
+    setInputValue(next);
+    const parsed = parseFloat(next);
+    if (!Number.isNaN(parsed)) {
+      onChange(clampValue(parsed));
     }
   };
 
@@ -97,7 +119,14 @@ const NumberInput = ({
         </button>
         <input
           type="number"
-          value={value}
+          value={inputValue}
+          onBlur={commitValue}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              commitValue();
+              (e.target as HTMLInputElement).blur();
+            }
+          }}
           onChange={handleInputChange}
           className="flex-1 min-w-0 bg-transparent text-center font-mono text-reading outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />

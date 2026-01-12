@@ -124,6 +124,7 @@ const DebugMenu = ({ appState = 'idle', onStateChange }: DebugMenuProps) => {
   const [selectedElement, setSelectedElement] = useState<ElementInfo | null>(null);
   const [elements, setElements] = useState<ElementInfo[]>([]);
   const [hoveredElement, setHoveredElement] = useState<HTMLElement | null>(null);
+  const [isFantasmaEnabled, setIsFantasmaEnabled] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const states: AppState[] = ['idle', 'preview', 'processing', 'complete'];
@@ -136,6 +137,18 @@ const DebugMenu = ({ appState = 'idle', onStateChange }: DebugMenuProps) => {
       );
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('debug-font-fantasma');
+    const enabled = stored === 'true';
+    setIsFantasmaEnabled(enabled);
+    document.documentElement.classList.toggle('debug-font-fantasma', enabled);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('debug-font-fantasma', String(isFantasmaEnabled));
+    document.documentElement.classList.toggle('debug-font-fantasma', isFantasmaEnabled);
+  }, [isFantasmaEnabled]);
 
   useEffect(() => {
     if (!selectedElement) return;
@@ -364,62 +377,76 @@ const DebugMenu = ({ appState = 'idle', onStateChange }: DebugMenuProps) => {
         />
       )}
       
-      <div
-        ref={panelRef}
-        data-debug-panel
-        className="fixed top-4 right-4 z-50 w-80 bg-surface border-3 border-muted max-h-[90vh] overflow-y-auto shadow-2xl"
-      >
-        <div className="flex justify-between items-center px-3 py-2 border-b-3 border-muted">
-          <TypewriterText text="DEBUG MENU" className="font-ui text-sm text-active" />
-          <button
-            onClick={() => setIsOpen(false)}
-            className="font-ui text-xs text-muted hover:text-active"
-          >
-            [X]
-          </button>
-        </div>
-
-        {onStateChange && (
-          <div className="p-3 border-b-3 border-muted">
-            <FlickerLabel text="APP STATE" className="font-ui text-xs text-muted mb-2" />
-            <div className="flex flex-wrap gap-1">
-              {states.map(state => (
-                <button
-                  key={state}
-                  onClick={() => {
-                    console.log('Debug: switching to state:', state);
-                    onStateChange(state);
-                  }}
-                  className={`font-ui text-xs px-2 py-1 border-2 ${
-                    appState === state 
-                      ? 'border-active text-active bg-active/20' 
-                      : 'border-muted text-muted hover:border-active hover:text-active'
-                  }`}
-                  style={{ transition: 'none' }}
-                >
-                  {state.toUpperCase()}
-                </button>
-              ))}
-            </div>
-            <div className="font-mono text-xs text-muted mt-2">
-              current: {appState}
-            </div>
+        <div
+          ref={panelRef}
+          data-debug-panel
+          className="fixed top-4 right-4 z-50 w-80 bg-surface border-3 border-muted max-h-[90vh] overflow-y-auto shadow-2xl"
+        >
+          <div className="flex justify-between items-center px-3 py-2 border-b-3 border-muted">
+            <TypewriterText text="DEBUG MENU" className="font-ui text-sm text-active" />
+            <button
+              onClick={() => setIsOpen(false)}
+              className="font-ui text-xs text-muted hover:text-active"
+            >
+              [X]
+            </button>
           </div>
-        )}
 
-        <div className="p-3 border-b-3 border-muted">
-          <FlickerLabel text="MAKE DRAGGABLE" className="font-ui text-xs text-muted mb-2" />
-          
-          <button
-            onClick={() => setIsPickMode(true)}
-            className={`w-full font-ui text-xs px-2 py-2 border-2 mb-2 ${
-              isPickMode 
-                ? 'border-active text-active bg-active/20' 
-                : 'border-active text-active hover:bg-active hover:text-surface'
-            }`}
-          >
-            PICK ELEMENT FROM PAGE
-          </button>
+          {onStateChange && (
+            <div className="p-3 border-b-3 border-muted">
+              <FlickerLabel text="APP STATE" className="font-ui text-xs text-muted mb-2" />
+              <div className="flex flex-wrap gap-1">
+                {states.map(state => (
+                  <button
+                    key={state}
+                    onClick={() => {
+                      console.log('Debug: switching to state:', state);
+                      onStateChange(state);
+                    }}
+                    className={`font-ui text-xs px-2 py-1 border-2 ${
+                      appState === state 
+                        ? 'border-active text-active bg-active/20' 
+                        : 'border-muted text-muted hover:border-active hover:text-active'
+                    }`}
+                    style={{ transition: 'none' }}
+                  >
+                    {state.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+              <div className="font-mono text-xs text-muted mt-2">
+                current: {appState}
+              </div>
+            </div>
+          )}
+
+          <div className="p-3 border-b-3 border-muted">
+            <FlickerLabel text="FONT OVERRIDE" className="font-ui text-xs text-muted mb-2" />
+            <button
+              onClick={() => setIsFantasmaEnabled(prev => !prev)}
+              className={`w-full font-ui text-xs px-2 py-2 border-2 ${
+                isFantasmaEnabled
+                  ? 'border-active text-active bg-active/20'
+                  : 'border-muted text-muted hover:border-active hover:text-active'
+              }`}
+            >
+              {isFantasmaEnabled ? 'FANTASMA ON' : 'FANTASMA OFF'}
+            </button>
+          </div>
+
+          <div className="p-3 border-b-3 border-muted">
+            <FlickerLabel text="MAKE DRAGGABLE" className="font-ui text-xs text-muted mb-2" />
+
+            <button
+              onClick={() => setIsPickMode(true)}
+              className={`w-full font-ui text-xs px-2 py-2 border-2 mb-2 ${
+                isPickMode 
+                  ? 'border-active text-active bg-active/20' 
+                  : 'border-active text-active hover:bg-active hover:text-surface'
+              }`}
+            >
+              PICK ELEMENT FROM PAGE
+            </button>
           
           <div className="flex flex-col gap-1">
             <button

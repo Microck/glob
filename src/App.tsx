@@ -1,9 +1,11 @@
 import { Toaster } from "@/components/ui/toaster";
+import { useLayoutEffect, useRef } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ClerkProvider } from "@clerk/clerk-react";
+import gsap from "gsap";
 import Index from "./pages/Index";
 import SharePage from "./pages/SharePage";
 import Privacy from "./pages/Privacy";
@@ -55,23 +57,44 @@ const clerkAppearance = {
   }
 };
 
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    gsap.killTweensOf(containerRef.current);
+    gsap.fromTo(
+      containerRef.current,
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }
+    );
+  }, [location.pathname]);
+
+  return (
+    <div ref={containerRef}>
+      <Routes location={location}>
+        <Route path="/" element={<Index />} />
+        <Route path="/share/:id" element={<SharePage />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+};
+
 const AppContent = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/share/:id" element={<SharePage />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/history" element={<HistoryPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AnimatedRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

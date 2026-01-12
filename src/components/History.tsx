@@ -55,11 +55,26 @@ const History = ({ userId }: { userId?: string }) => {
     fetchData();
   }, [userId]);
 
-  const handleShare = (downloadUrl: string) => {
+  const handleShare = async (downloadUrl: string, isLocal?: boolean) => {
     const jobId = downloadUrl.split('/').pop();
     if (!jobId) return;
+
+    if (isLocal) {
+      toast({
+        title: "LOCAL ONLY",
+        description: "Guest files cannot generate share links.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const shareUrl = `${window.location.origin}/share/${jobId}`;
+    try {
+      await fetch(`${API_BASE}/api/activate-share/${jobId}`, { method: 'POST' });
+    } catch (error) {
+      console.error('Failed to activate share:', error);
+    }
+
     navigator.clipboard.writeText(shareUrl);
     
     toast({
@@ -164,7 +179,7 @@ const History = ({ userId }: { userId?: string }) => {
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => handleShare(item.download_url)}
+                onClick={() => handleShare(item.download_url, item.is_local)}
                 className="p-2 border-2 border-muted hover:border-active hover:text-active transition-none bg-surface"
                 title="Copy Share Link"
               >

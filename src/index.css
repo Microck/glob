@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Fantasma';
+  src: url('/fonts/fantasma/fantasma-regular.otf') format('opentype'),
+       url('/fonts/fantasma/fantasma-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ACID BRUTALIST DESIGN SYSTEM */
 
 @layer base {
@@ -63,6 +72,17 @@
     font-weight: 700;
     text-transform: uppercase;
   }
+
+  .debug-font-fantasma .font-display {
+    font-family: 'Fantasma', sans-serif;
+    font-weight: 400;
+  }
+
+  .debug-font-fantasma .font-ui {
+    font-family: 'Fantasma', sans-serif;
+    font-weight: 400;
+  }
+
 
   /* Industrial Input Styling */
   .input-raw {

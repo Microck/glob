@@ -6,14 +6,6 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import LoadingIndicator from './LoadingIndicator';
 
-interface ModelProps {
-  url: string;
-  onLoaded?: () => void;
-  wireframe?: boolean;
-  clay?: boolean;
-  roughness?: boolean;
-}
-
 interface CameraControllerProps {
   scene: THREE.Object3D;
   controlsRef: React.RefObject<React.ElementRef<typeof OrbitControls>>;
@@ -32,7 +24,7 @@ const CameraController = ({ scene, controlsRef, resetTrigger }: CameraController
     const size = box.getSize(new THREE.Vector3());
     const center = new THREE.Vector3(0, 0, 0);
     
-    const maxDim = Math.max(size.x, size.y, size.z);
+    const maxDim = Math.max(size.x, size.y, size.z) || 1;
     const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
     const distance = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
     
@@ -97,93 +89,85 @@ const CameraController = ({ scene, controlsRef, resetTrigger }: CameraController
   return null;
 };
 
-const Model = ({ url, onLoaded, wireframe = false, clay = false, roughness = false }: ModelProps) => {
-  const { scene } = useGLTF(url);
-  const [isModelReady, setIsModelReady] = useState(false);
-  const originalMaterials = useRef<Map<THREE.Mesh, THREE.Material | THREE.Material[]>>(new Map());
-  
-  useEffect(() => {
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (!originalMaterials.current.has(child) && child.material) {
-          originalMaterials.current.set(child, child.material);
-        }
-        
-        if (child.material) {
-          if (wireframe) {
-            child.material = new THREE.MeshBasicMaterial({ 
-              color: 0xFC6E83, 
-              wireframe: true,
-              wireframeLinewidth: 1
-            });
-          } else if (clay) {
-            child.material = new THREE.MeshStandardMaterial({
-              color: 0xd4d4d4,
-              roughness: 0.6,
-              metalness: 0.0,
-              flatShading: false,
-              envMapIntensity: 0.3
-            });
-          } else if (roughness) {
-            const origMat = originalMaterials.current.get(child);
-            if (origMat && !Array.isArray(origMat) && origMat instanceof THREE.MeshStandardMaterial) {
-              child.material = origMat.clone();
-              (child.material as THREE.MeshStandardMaterial).roughness = 1.0;
-              (child.material as THREE.MeshStandardMaterial).metalness = 0.0;
-            } else if (Array.isArray(origMat)) {
-              child.material = origMat.map(m => {
-                if (m instanceof THREE.MeshStandardMaterial) {
-                  const cloned = m.clone();
-                  cloned.roughness = 1.0;
-                  cloned.metalness = 0.0;
-                  return cloned;
-                }
-                return m;
-              });
-            } else {
-              const orig = originalMaterials.current.get(child);
-              if (orig) child.material = orig;
-            }
-          } else {
-            const orig = originalMaterials.current.get(child);
-            if (orig) {
-              child.material = orig;
-            }
-            if (Array.isArray(child.material)) {
-              child.material.forEach((mat) => {
-                mat.transparent = false;
-                mat.opacity = 1;
-                mat.side = THREE.FrontSide;
-              });
-            } else {
-              child.material.transparent = false;
-              child.material.opacity = 1;
-              child.material.side = THREE.FrontSide;
-            }
-          }
-        }
-        child.visible = true;
-        child.renderOrder = 0;
-      }
+const buildPreviewScene = (scene: THREE.Object3D, wireframe: boolean, clay: boolean, roughness: boolean) => {
+  const clonedScene = scene.clone(true);
+
+  const createRoughMaterial = (material: THREE.Material) => {
+    const baseColor = (material as THREE.MeshStandardMaterial).color?.clone?.() ?? new THREE.Color(0xffffff);
+    return new THREE.MeshStandardMaterial({
+      color: baseColor,
+      roughness: 1.0,
+      metalness: 0.0
     });
+  };
 
-    const box = new THREE.Box3().setFromObject(scene);
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = (2 / maxDim) * 0.9; 
-    scene.scale.setScalar(scale);
-    
-    setIsModelReady(true);
-    if (onLoaded) {
-      onLoaded();
+  clonedScene.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      if (wireframe) {
+        child.material = new THREE.MeshBasicMaterial({ 
+          color: 0xFC6E83, 
+          wireframe: true,
+          wireframeLinewidth: 1
+        });
+      } else if (clay) {
+        child.material = new THREE.MeshStandardMaterial({
+          color: 0xd4d4d4,
+          roughness: 0.6,
+          metalness: 0.0,
+          flatShading: false,
+          envMapIntensity: 0.3
+        });
+      } else if (roughness) {
+        if (Array.isArray(child.material)) {
+          child.material = child.material.map(material => {
+            if (material instanceof THREE.MeshStandardMaterial) {
+              const cloned = material.clone();
+              cloned.roughness = 1.0;
+              cloned.metalness = 0.0;
+              return cloned;
+            }
+            return createRoughMaterial(material);
+          });
+        } else if (child.material instanceof THREE.MeshStandardMaterial) {
+          const cloned = child.material.clone();
+          cloned.roughness = 1.0;
+          cloned.metalness = 0.0;
+          child.material = cloned;
+        } else if (child.material) {
+          child.material = createRoughMaterial(child.material);
+        }
+      } else if (Array.isArray(child.material)) {
+        child.material.forEach((mat) => {
+          mat.transparent = false;
+          mat.opacity = 1;
+          mat.side = THREE.FrontSide;
+        });
+      } else if (child.material) {
+        child.material.transparent = false;
+        child.material.opacity = 1;
+        child.material.side = THREE.FrontSide;
+      }
+
+      if (!Array.isArray(child.material) && child.material) {
+        child.material.needsUpdate = true;
+      } else if (Array.isArray(child.material)) {
+        child.material.forEach(material => {
+          material.needsUpdate = true;
+        });
+      }
+
+      child.visible = true;
+      child.renderOrder = 0;
     }
-  }, [scene, url, onLoaded, wireframe, clay, roughness]);
+  });
 
-  if (!isModelReady) {
-    return null;
-  }
+  const box = new THREE.Box3().setFromObject(clonedScene);
+  const size = box.getSize(new THREE.Vector3());
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const scale = (2 / maxDim) * 0.9; 
+  clonedScene.scale.setScalar(scale);
 
-  return <primitive object={scene} />;
+  return clonedScene;
 };
 
 interface SceneContentProps {
@@ -198,6 +182,11 @@ interface SceneContentProps {
 
 const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger, wireframe, clay, roughness }: SceneContentProps) => {
   const { scene } = useGLTF(objectUrl);
+  const previewScene = useMemo(() => buildPreviewScene(scene, wireframe, clay, roughness), [scene, wireframe, clay, roughness]);
+
+  useEffect(() => {
+    onModelLoaded();
+  }, [onModelLoaded, previewScene]);
   
   return (
     <>
@@ -205,9 +194,9 @@ const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger, wir
       <directionalLight position={[10, 10, 5]} intensity={1.2} />
       <pointLight position={[-10, -10, -10]} intensity={0.5} />
       <Center>
-        <Model url={objectUrl} onLoaded={onModelLoaded} wireframe={wireframe} clay={clay} roughness={roughness} />
+        <primitive object={previewScene} />
       </Center>
-      <CameraController scene={scene} controlsRef={controlsRef} resetTrigger={resetTrigger} />
+      <CameraController scene={previewScene} controlsRef={controlsRef} resetTrigger={resetTrigger} />
       <OrbitControls 
         ref={controlsRef}
         enableDamping={false}

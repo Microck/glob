@@ -68,13 +68,13 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
           ref={catRef}
           src={isComplete ? "/finished.svg" : "/loading.svg"}
           alt={isComplete ? "Complete" : "Loading"}
-          style={{ 
-            width: '95px',
-            height: '110px',
-            transform: 'translate(0px, 0px) scale(1.10)',
-            filter: isComplete ? 'none' : 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)',
-            transformOrigin: 'bottom center'
-          }}
+            style={{ 
+              width: '95px',
+              height: '110px',
+              transform: `translate(0px, ${isComplete ? '1px' : '0px'}) scale(1.10)`,
+              filter: isComplete ? 'none' : 'invert(56%) sepia(52%) saturate(2071%) hue-rotate(314deg) brightness(100%) contrast(97%)',
+              transformOrigin: 'bottom center'
+            }}
         />
       </div>
       <div className="font-ui text-xs text-active whitespace-nowrap">
