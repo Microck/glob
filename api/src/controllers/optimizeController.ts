@@ -377,8 +377,14 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
   if (!metadata) {
     if (isR2Configured()) {
       const fallbackKey = `${METADATA_PREFIX}/${id}.glb`;
-      const downloadUrl = await getDownloadUrl(fallbackKey);
-      return res.redirect(downloadUrl);
+      try {
+        const fileBuffer = await getFromR2(fallbackKey);
+        res.setHeader("Content-Type", "model/gltf-binary");
+        res.setHeader("Content-Disposition", `attachment; filename="${id}.glb"`);
+        return res.send(fileBuffer);
+      } catch {
+        return res.status(404).json({ status: "error", message: "File not found" });
+      }
     }
     return res.status(404).json({ status: "error", message: "File not found" });
   }
@@ -389,6 +395,17 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
     }
     await deleteMetadata(id);
     return res.status(410).json({ status: "error", message: "File expired" });
+  }
+
+  if (isR2Configured()) {
+    try {
+      const fileBuffer = await getFromR2(metadata.storageKey);
+      res.setHeader("Content-Type", "model/gltf-binary");
+      res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
+      return res.send(fileBuffer);
+    } catch {
+      return res.status(404).json({ status: "error", message: "File not found" });
+    }
   }
 
   const downloadUrl = await getDownloadUrl(metadata.storageKey);
