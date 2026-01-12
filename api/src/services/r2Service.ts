@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -17,6 +17,10 @@ const R2_CONFIGURED = Boolean(
 );
 
 let r2Client: S3Client | null = null;
+
+export function isR2Configured(): boolean {
+  return R2_CONFIGURED;
+}
 
 function getR2(): S3Client | null {
   if (!R2_CONFIGURED) return null;
@@ -119,4 +123,28 @@ export async function deleteFromR2(key: string) {
   });
 
   await r2.send(command);
+}
+
+export async function checkObjectExists(key: string): Promise<boolean> {
+  const r2 = getR2();
+  if (!r2) {
+    const localPath = path.join(OPTIMIZED_DIR, key);
+    try {
+      await fs.access(localPath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  try {
+    const command = new HeadObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+    });
+    await r2.send(command);
+    return true;
+  } catch {
+    return false;
+  }
 }

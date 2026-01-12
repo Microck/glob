@@ -99,25 +99,15 @@ const Index = () => {
       return;
     }
     
-setAppState('processing');
+    setAppState('processing');
     setProgress(0);
-    setCurrentMessage('PARSING MODEL...');
+    setCurrentMessage('LOADING MODEL...');
     
     const mainFile = filesToProcess[0];
     
     setDesiredSize(Math.floor(mainFile.size / 1024 / 1024 * 0.8));
-    setDesiredPolygons(Math.floor(10000 / 1000) * 1000); 
-    
-    let p = 0;
-    const interval = setInterval(() => {
-      p += 5;
-      if (p <= 40) {
-        setProgress(p);
-      } else {
-        clearInterval(interval);
-        setIsModelLoading(true);
-      }
-    }, 15);
+    setDesiredPolygons(Math.floor(10000 / 1000) * 1000);
+    setIsModelLoading(true);
   }, [userId, toast]);
 
   const handleRemoveFile = useCallback((index: number) => {
@@ -189,8 +179,7 @@ setAppState('processing');
   }, [files, decimation, dracoLevel, textureQuality, weld, quantize, draco, getToken, userId]);
 
   const handleModelProgress = useCallback((percent: number) => {
-    const p = 40 + (percent * 0.6);
-    setProgress(Math.floor(p));
+    setProgress(Math.floor(percent));
   }, []);
 
 const handleModelLoaded = useCallback(() => {
@@ -266,28 +255,25 @@ const handleModelLoaded = useCallback(() => {
         draco: mode === 'advanced' ? draco : true,
       };
 
-      const result = await optimizeFile(file, settings, token || undefined, (percent) => {
-        setProgress(percent); 
-        if (percent >= 50) {
-          setCurrentMessage('OPTIMIZING...');
+      const result = await optimizeFile(
+        file,
+        settings,
+        token || undefined,
+        (percent) => {
+          setProgress(percent);
+          if (percent > 0 && percent < 99) {
+            setCurrentMessage('UPLOADING...');
+          }
+        },
+        (message) => {
+          setCurrentMessage(message);
         }
-      });
-      
-      let currentP = 50;
-      const finalInterval = setInterval(() => {
-        currentP += 2;
-        if (currentP <= 98) {
-          setProgress(currentP);
-        } else {
-          clearInterval(finalInterval);
-        }
-      }, 100);
+      );
       
       if (result.status === 'success') {
         if (!userId) {
           saveToLocalHistory({ ...result, original_name: file.name });
         }
-        clearInterval(finalInterval);
         setCompressedSize(result.optimizedSize);
         setDownloadUrl(result.downloadUrl);
         setFacesBefore(result.stats.facesBefore);

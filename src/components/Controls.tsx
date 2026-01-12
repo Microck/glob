@@ -101,7 +101,11 @@ const NumberInput = ({
     const next = e.target.value;
     setInputValue(next);
     const parsed = parseFloat(next);
-    if (!Number.isNaN(parsed)) {
+    if (Number.isNaN(parsed)) {
+      return;
+    }
+
+    if (step < 1000) {
       onChange(clampValue(parsed));
     }
   };
@@ -188,9 +192,17 @@ const Controls = ({
   useEffect(() => {
     if (mode !== displayMode && !isTransitioning.current) {
       isTransitioning.current = true;
+
+      const panel = panelRef.current;
+      if (panel) {
+        gsap.set(panel, { height: panel.offsetHeight });
+      }
       
       const tl = gsap.timeline({
         onComplete: () => {
+          if (panel) {
+            gsap.set(panel, { height: 'auto' });
+          }
           isTransitioning.current = false;
         }
       });

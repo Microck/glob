@@ -142,8 +142,14 @@ function dracoLevelToEncodeSpeed(dracoLevel: number): number {
 export async function processGlb(
   buffer: Buffer,
   options: OptimizeOptions,
+  onProgress?: (progress: number, message?: string) => void,
 ): Promise<{ optimizedBuffer: Buffer; stats: OptimizeStats }> {
   const io = await getIO();
+
+  const reportProgress = (progress: number, message?: string) => {
+    if (!onProgress) return;
+    onProgress(Math.max(0, Math.min(100, progress)), message);
+  };
 
   let document: Document;
   try {
@@ -153,12 +159,15 @@ export async function processGlb(
     throw new InvalidModelError("Malformed GLB/GLTF file.");
   }
 
+  reportProgress(10, "parsed model");
+
   const facesBefore = countFaces(document);
   const verticesBefore = countVertices(document);
 
   try {
     if (options.weld !== false) {
       await document.transform(weld());
+      reportProgress(25, "welded vertices");
     }
 
     if (options.decimateRatio < 1) {
@@ -169,6 +178,7 @@ export async function processGlb(
           error: 0.001,
         }),
       );
+      reportProgress(45, "simplified mesh");
     }
 
     const facesAfter = countFaces(document);
@@ -180,10 +190,12 @@ export async function processGlb(
           resize: [options.textureQuality, options.textureQuality],
         }),
       );
+      reportProgress(60, "compressed textures");
     }
 
     if (options.quantize !== false) {
       await document.transform(quantize());
+      reportProgress(70, "quantized attributes");
     }
 
     if (options.draco !== false) {
@@ -194,9 +206,11 @@ export async function processGlb(
           decodeSpeed: 10,
         }),
       );
+      reportProgress(80, "draco encoded");
     }
 
     const optimized = await io.writeBinary(document);
+    reportProgress(90, "finalizing buffer");
 
     return {
       optimizedBuffer: Buffer.from(optimized),

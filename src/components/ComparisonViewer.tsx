@@ -4,7 +4,7 @@ import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
 import { Switch } from '@/components/ui/switch';
 import * as THREE from 'three';
 import gsap from 'gsap';
-import { Share2, Focus, ChevronLeft, ChevronRight, List, ArrowLeft } from 'lucide-react';
+import { Share2, Crosshair, ChevronLeft, ChevronRight, List, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   DropdownMenu,
@@ -275,7 +275,7 @@ const ComparisonViewer = ({
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-3 py-1 hover:bg-muted/50 transition-colors font-ui text-sm max-w-[200px]">
+                <button className="flex items-center gap-2 px-3 py-1 hover:bg-muted/50 transition-colors font-ui text-sm max-w-[320px]" title={file.name}>
                   <span className="truncate">{file.name}</span>
                   <List className="w-4 h-4 text-muted" />
                 </button>
@@ -287,7 +287,7 @@ const ComparisonViewer = ({
                     onClick={() => onSelectFile?.(idx)}
                     className={currentIndex === idx ? "bg-muted font-bold" : ""}
                   >
-                    <span className="truncate max-w-[200px]">{idx + 1}. {f.name}</span>
+                    <span className="truncate max-w-[320px]" title={f.name}>{idx + 1}. {f.name}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -462,11 +462,19 @@ const ComparisonViewer = ({
             >
               Clay
             </label>
+
+            <button
+              onClick={handleCenterModel}
+              className="ml-2 px-2 py-1 border-2 border-muted text-muted hover:border-active hover:text-active transition-none"
+              title="Center Model"
+            >
+              <Crosshair className="w-4 h-4" />
+            </button>
           </div>
         </div>
-        <div className="flex-1 p-4 bg-surface max-w-[200px]">
+        <div className="flex-1 p-4 bg-surface max-w-[320px]">
           <span className="font-ui text-[10px] text-muted uppercase tracking-widest">File</span>
-          <div className="font-ui text-[10px] text-reading truncate mt-2 uppercase">
+          <div className="font-ui text-[10px] text-reading truncate mt-2 uppercase" title={file.name}>
             {file.name}
           </div>
         </div>
@@ -478,13 +486,6 @@ const ComparisonViewer = ({
           className="flex-1 bg-active text-surface font-display text-xl py-5 hover:bg-reading transition-none"
         >
           DOWNLOAD
-        </button>
-        <button
-          onClick={handleCenterModel}
-          className="border-3 border-l-0 border-muted bg-surface text-reading font-ui px-6 py-5 hover:bg-active hover:text-surface hover:border-active flex items-center justify-center transition-none"
-          title="Center Model"
-        >
-          <Focus className="w-5 h-5" />
         </button>
         <button
           onClick={handleShare}

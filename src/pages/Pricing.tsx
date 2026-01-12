@@ -87,7 +87,7 @@ const Pricing = () => {
             
             <div className="flex justify-between items-start mb-6 relative z-10">
               <h2 className="font-display text-2xl text-active uppercase tracking-wider">globber</h2>
-              <div className="font-mono text-xl text-active">$5<span className="text-xs">/mo</span></div>
+              <div className="font-mono text-xl text-active">$8<span className="text-xs">/mo</span></div>
             </div>
             <ul className="flex-1 space-y-4 mb-8 relative z-10">
               <li className="flex items-center gap-3 font-ui text-sm text-reading uppercase tracking-tighter font-bold">

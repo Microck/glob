@@ -11,7 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
-import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2 } from "../services/r2Service.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured, checkObjectExists } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
@@ -20,9 +20,48 @@ const __dirname = path.dirname(__filename);
 
 const API_ROOT = path.resolve(__dirname, "..", "..", "..");
 const TMP_DIR = process.env.VERCEL ? "/tmp" : path.join(API_ROOT, "tmp");
-
-const UPLOAD_DIR = path.join(TMP_DIR, "uploads");
 const OPTIMIZED_DIR = path.join(TMP_DIR, "optimized");
+const METADATA_PREFIX = "optimized";
+
+const getMetadataKey = (id: string) => `${METADATA_PREFIX}/${id}.json`;
+const getMetadataPath = (id: string) => path.join(OPTIMIZED_DIR, `${id}.json`);
+
+async function readMetadata(id: string): Promise<Record<string, any> | null> {
+  if (isR2Configured()) {
+    try {
+      const buffer = await getFromR2(getMetadataKey(id));
+      return JSON.parse(buffer.toString("utf-8"));
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const metaContent = await fs.readFile(getMetadataPath(id), "utf-8");
+    return JSON.parse(metaContent);
+  } catch {
+    return null;
+  }
+}
+
+async function writeMetadata(id: string, metadata: Record<string, any>) {
+  if (isR2Configured()) {
+    await uploadToR2(getMetadataKey(id), Buffer.from(JSON.stringify(metadata)), "application/json");
+    return;
+  }
+
+  await fs.writeFile(getMetadataPath(id), JSON.stringify(metadata));
+}
+
+async function deleteMetadata(id: string) {
+  if (isR2Configured()) {
+    await deleteFromR2(getMetadataKey(id)).catch(() => undefined);
+    return;
+  }
+
+  await fs.unlink(getMetadataPath(id)).catch(() => undefined);
+}
+
 
 const SettingsSchema = z.object({
   decimateRatio: z.number().min(0).max(1),
@@ -228,20 +267,47 @@ optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), 
   }
 
   const inputPath = req.file?.path;
+  let streamStarted = false;
 
+  const startStream = () => {
+    if (streamStarted) return;
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Transfer-Encoding", "chunked");
+    if (typeof res.flushHeaders === "function") {
+      res.flushHeaders();
+    }
+    streamStarted = true;
+  };
+
+  const sendProgress = (progress: number, message?: string) => {
+    startStream();
+    res.write(JSON.stringify({ type: "progress", progress, message }) + "\n");
+  };
+
+  const sendResult = (payload: Record<string, unknown>) => {
+    startStream();
+    res.write(JSON.stringify({ type: "result", ...payload }) + "\n");
+    res.end();
+  };
+ 
   try {
     const buffer = storageKey 
       ? await getFromR2(storageKey)
       : await fs.readFile(inputPath!);
 
     const actualOriginalSize = buffer.byteLength;
+    sendProgress(5, "reading file");
 
-    const { optimizedBuffer, stats } = await processGlb(buffer, settings);
+    const { optimizedBuffer, stats } = await processGlb(buffer, settings, (progress, message) => {
+      sendProgress(progress, message);
+    });
 
     const jobId = randomUUID();
     const resultKey = `optimized/${jobId}.glb`;
 
     await uploadToR2(resultKey, optimizedBuffer);
+    sendProgress(95, "uploading result");
     
     const metadata = {
       createdAt: new Date().toISOString(),
@@ -251,7 +317,8 @@ optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), 
       stats,
       storageKey: resultKey
     };
-    await fs.writeFile(path.join(OPTIMIZED_DIR, `${jobId}.json`), JSON.stringify(metadata));
+    await writeMetadata(jobId, metadata);
+    sendProgress(98, "writing metadata");
 
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
     const downloadUrl = `${protocol}://${req.get("host")}/api/download/${jobId}`;
@@ -275,7 +342,8 @@ optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), 
       await deleteFromR2(storageKey).catch(() => undefined);
     }
 
-    return res.json({
+    sendProgress(100, "complete");
+    return sendResult({
       status: "success",
       originalSize: actualOriginalSize,
       optimizedSize: optimizedBuffer.byteLength,
@@ -285,6 +353,9 @@ optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Optimization failed";
     const statusCode = getStatusCode(err);
+    if (streamStarted) {
+      return sendResult({ status: "error", message, statusCode });
+    }
     return res.status(statusCode).json({ status: "error", message });
   } finally {
     if (inputPath) {
@@ -300,34 +371,39 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
     return res.status(400).json({ status: "error", message: "Invalid download id" });
   }
 
-  const metaPath = path.join(OPTIMIZED_DIR, `${id}.json`);
+  const metadata = await readMetadata(id);
 
-  try {
-    const metaContent = await fs.readFile(metaPath, 'utf-8');
-    const metadata = JSON.parse(metaContent);
-    
-    if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
-      if (metadata.storageKey) {
-        await deleteFromR2(metadata.storageKey).catch(() => undefined);
+  if (!metadata) {
+    if (isR2Configured()) {
+      const fallbackKey = `${METADATA_PREFIX}/${id}.glb`;
+      const exists = await checkObjectExists(fallbackKey);
+      if (exists) {
+        const downloadUrl = await getDownloadUrl(fallbackKey);
+        return res.redirect(downloadUrl);
       }
-      await fs.unlink(metaPath).catch(() => undefined);
-      return res.status(410).json({ status: "error", message: "File expired" });
     }
-
-    const downloadUrl = await getDownloadUrl(metadata.storageKey);
-    
-    if (downloadUrl.startsWith("/api/local-download/")) {
-      const localPath = path.join(OPTIMIZED_DIR, metadata.storageKey);
-      res.setHeader("Content-Type", "model/gltf-binary");
-      res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
-      const fileBuffer = await fs.readFile(localPath);
-      return res.send(fileBuffer);
-    }
-    
-    return res.redirect(downloadUrl);
-  } catch {
     return res.status(404).json({ status: "error", message: "File not found" });
   }
+
+  if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+    if (metadata.storageKey) {
+      await deleteFromR2(metadata.storageKey).catch(() => undefined);
+    }
+    await deleteMetadata(id);
+    return res.status(410).json({ status: "error", message: "File expired" });
+  }
+
+  const downloadUrl = await getDownloadUrl(metadata.storageKey);
+
+  if (downloadUrl.startsWith("/api/local-download/")) {
+    const localPath = path.join(OPTIMIZED_DIR, metadata.storageKey);
+    res.setHeader("Content-Type", "model/gltf-binary");
+    res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
+    const fileBuffer = await fs.readFile(localPath);
+    return res.send(fileBuffer);
+  }
+
+  return res.redirect(downloadUrl);
 });
 
 optimizeRouter.get("/local-download/:key", async (req: Request, res: Response) => {
@@ -358,20 +434,17 @@ optimizeRouter.post("/activate-share/:id", async (req: Request, res: Response) =
       return res.status(400).json({ status: "error", message: "Invalid id" });
   }
 
-  const metaPath = path.join(OPTIMIZED_DIR, `${id}.json`);
+  const metadata = await readMetadata(id);
 
-  try {
-    const metaContent = await fs.readFile(metaPath, 'utf-8');
-    const metadata = JSON.parse(metaContent);
-    
-    const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    metadata.expiresAt = newExpiresAt;
-    
-    await fs.writeFile(metaPath, JSON.stringify(metadata));
-    return res.json({ status: "success", expiresAt: newExpiresAt });
-  } catch {
+  if (!metadata) {
     return res.status(404).json({ status: "error", message: "Asset not found" });
   }
+
+  const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  metadata.expiresAt = newExpiresAt;
+
+  await writeMetadata(id, metadata);
+  return res.json({ status: "success", expiresAt: newExpiresAt });
 });
 
 optimizeRouter.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {

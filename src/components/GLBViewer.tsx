@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState, useRef, useCallback, memo, useMemo } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
+import { Crosshair } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import * as THREE from 'three';
 import gsap from 'gsap';
@@ -276,7 +277,7 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
   return (
     <div ref={containerRef} className="w-full aspect-[16/9] max-w-4xl border-3 border-muted relative">
       <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center px-4 py-2 bg-surface/80 border-b-3 border-muted">
-        <span className="font-ui text-sm text-reading truncate max-w-[200px]">
+        <span className="font-ui text-sm text-reading truncate max-w-[420px]" title={file.name}>
           {file.name}
         </span>
         <button
@@ -295,10 +296,7 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
             className="font-ui text-xs text-muted hover:text-active bg-surface/90 border-2 border-muted hover:border-active px-3 py-2"
             style={{ transition: 'none' }}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
-            </svg>
+            <Crosshair className="w-4 h-4" />
           </button>
           <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-surface border-2 border-muted text-xs font-ui text-reading whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none">
             CENTER MODEL
