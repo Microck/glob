@@ -8,13 +8,11 @@ import Controls from '@/components/Controls';
 import ProgressBar from '@/components/ProgressBar';
 import ComparisonViewer from '@/components/ComparisonViewer';
 import ScrambleText from '@/components/ScrambleText';
-import DebugMenu from '@/components/DebugMenu';
 import PageLayout from '@/components/PageLayout';
 import History from '@/components/History';
 import FileQueue from '@/components/FileQueue';
 import BulkProgressList, { FileStatus } from '@/components/BulkProgressList';
 import { optimizeFile, downloadFile, type OptimizeResponse, saveToLocalHistory } from '@/lib/api';
-import DebugConsole from '@/components/DebugConsole';
 
 type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
@@ -54,9 +52,7 @@ const Index = () => {
   const [facesAfter, setFacesAfter] = useState(0);
   const [verticesBefore, setVerticesBefore] = useState(0);
   const [verticesAfter, setVerticesAfter] = useState(0);
-  const [isDebugMode, setIsDebugMode] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
-  const [isDebugConsoleVisible, setIsDebugConsoleVisible] = useState(false);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const prevStateRef = useRef<AppState>(appState);
@@ -71,15 +67,6 @@ const Index = () => {
     }
   }, [appState]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === '`') {
-        setIsDebugConsoleVisible(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   const handleFileSelect = useCallback((selectedFiles: File[]) => {
     let filesToProcess = selectedFiles;
@@ -193,10 +180,12 @@ const handleModelLoaded = useCallback(() => {
     setAppState('idle');
     setProgress(0);
     setCompressedSize(0);
-    setIsDebugMode(false);
     setIsModelLoading(false);
     setViewingIndex(null);
   }, []);
+
+
+
 
   const handleViewResult = useCallback((index: number) => {
     setViewingIndex(index);
@@ -306,58 +295,13 @@ const handleModelLoaded = useCallback(() => {
     }
   }, [file, downloadUrl]);
 
-  const createMockFile = () => {
-    const size = 1024 * 1024 * 5; 
-    const content = new Blob([new Array(size).fill('a').join('')], { type: 'model/gltf-binary' });
-    return new File([content], 'debug-model.glb', { type: 'model/gltf-binary' });
-  };
 
-  const handleDebugStateChange = useCallback((newState: AppState) => {
-    setIsDebugMode(true);
-    
-    if (newState !== 'idle' && files.length === 0) {
-      setFiles([createMockFile()]);
-    }
-    
-    setAppState(newState);
-    
-    if (newState === 'processing' || newState === 'preview') {
-      setProgress(50);
-      setCurrentMessage('DEBUG MODE...');
-      setFacesBefore(50000);
-    } else if (newState === 'complete') {
-      setProgress(100);
-      setCurrentMessage('COMPLETE');
-      setCompressedSize(1024 * 500);
-      setFacesBefore(50000);
-    } else if (newState === 'idle') {
-      setIsDebugMode(false);
-    }
-  }, [files]);
 
   return (
-    <PageLayout disableScroll appState={appState} onStateChange={handleDebugStateChange}>
-      <DebugConsole 
-        isVisible={isDebugConsoleVisible}
-        currentMessage={currentMessage}
-        progress={progress}
-        settings={{
-          mode,
-          decimation,
-          dracoLevel,
-          textureQuality,
-          weld,
-          quantize,
-          draco
-        }}
-        stats={file ? {
-          originalSize: file.size,
-          originalPolygons: facesBefore
-        } : undefined}
-      />
-
+    <PageLayout disableScroll>
       <div ref={contentRef}>
       {appState === 'idle' && (
+
         <div className="w-full flex flex-col items-center">
           {files.length > 0 ? (
             <FileQueue 
@@ -378,22 +322,13 @@ const handleModelLoaded = useCallback(() => {
         </div>
       )}
       
-{appState === 'preview' && file && (
+      {appState === 'preview' && file && (
         <div className="w-full flex flex-col items-center">
-          {isDebugMode ? (
-            <div className="w-full aspect-[16/9] max-w-4xl border-3 border-muted bg-surface flex items-center justify-center flex-shrink-0">
-              <div className="text-center">
-                <div className="font-ui text-sm text-muted mb-2">[DEBUG MODE]</div>
-                <div className="font-display text-2xl text-reading">3D VIEWER PLACEHOLDER</div>
-                <div className="font-ui text-xs text-muted mt-2">Load a real .glb file to see the viewer</div>
-              </div>
-            </div>
-          ) : (
-            <div className="w-full flex-shrink-0">
-              <GLBViewer file={file} onReset={handleReset} />
-            </div>
-          )}
+          <div className="w-full flex-shrink-0">
+            <GLBViewer file={file} onReset={handleReset} />
+          </div>
           <div className="mt-0 w-full">
+
             <Controls
               decimation={decimation}
               dracoLevel={dracoLevel}
@@ -476,31 +411,6 @@ const handleModelLoaded = useCallback(() => {
             />
           </div>
         ) : (
-          isDebugMode ? (
-          <div className="w-full">
-            <div className="w-full aspect-[16/9] border-3 border-muted bg-surface flex items-center justify-center">
-              <div className="text-center">
-                <div className="font-ui text-sm text-muted mb-2">[DEBUG MODE]</div>
-                <div className="font-display text-2xl text-reading">COMPARISON VIEWER PLACEHOLDER</div>
-                <div className="font-ui text-xs text-muted mt-2">Load a real .glb file to see the comparison</div>
-              </div>
-            </div>
-            <div className="flex border-3 border-t-0 border-muted">
-              <div className="flex-1 p-4 border-r-3 border-muted bg-surface">
-                <span className="font-ui text-xs text-muted">REDUCTION</span>
-                <div className="font-display text-3xl text-active tracking-brutal">-50.0%</div>
-              </div>
-              <div className="flex-1 p-4 bg-surface">
-                <span className="font-ui text-xs text-muted">FILE</span>
-                <div className="font-ui text-sm text-reading truncate">{file.name}</div>
-              </div>
-            </div>
-            <div className="flex">
-              <button className="flex-1 bg-active text-surface font-ui text-xl py-5">DOWNLOAD</button>
-              <button onClick={handleReset} className="border-3 border-l-0 border-muted bg-surface text-muted font-ui text-xl px-6 py-5 hover:text-active hover:border-active">RESET</button>
-            </div>
-          </div>
-        ) : (
           <ComparisonViewer
             file={viewingIndex !== null ? files[viewingIndex] : file}
             originalSize={viewingIndex !== null ? files[viewingIndex].size : file.size}
@@ -520,8 +430,7 @@ const handleModelLoaded = useCallback(() => {
             onBackToResults={files.length > 1 ? handleBackToResults : undefined}
           />
         )
-      )
-    )}
+      )}
       </div>
     </PageLayout>
   );

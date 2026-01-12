@@ -3,26 +3,20 @@ import Header from "./Header";
 import FloatingLinks from "./FloatingLinks";
 import GridBackground from "./GridBackground";
 import NoiseOverlay from "./NoiseOverlay";
-import DebugMenu from "./DebugMenu";
-
-type AppState = 'idle' | 'preview' | 'processing' | 'complete';
 
 interface PageLayoutProps {
   children: ReactNode;
   showContentOnly?: boolean;
   isCentered?: boolean;
   disableScroll?: boolean;
-  appState?: AppState;
-  onStateChange?: (state: AppState) => void;
 }
+
 
 const PageLayout = ({ 
   children, 
   showContentOnly = false, 
   isCentered = true, 
-  disableScroll = false,
-  appState,
-  onStateChange
+  disableScroll = false
 }: PageLayoutProps) => {
   const mainPadding = showContentOnly ? 'pt-8 pb-8' : 'pt-24 pb-32';
   const contentScale = showContentOnly ? 'scale-100' : 'scale-90';
@@ -42,8 +36,6 @@ const PageLayout = ({
       </main>
 
       {!showContentOnly && <FloatingLinks />}
-
-      <DebugMenu appState={appState} onStateChange={onStateChange} />
     </div>
   );
 };

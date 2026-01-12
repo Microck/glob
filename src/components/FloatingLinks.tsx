@@ -4,7 +4,7 @@ const FloatingLinks = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 p-6 flex justify-between items-end pointer-events-none">
       <span className="font-ui text-[10px] text-muted uppercase tracking-widest">
-        v1.3.0-debug
+        v1.3.0
       </span>
       <div className="flex gap-6 font-ui text-[10px] pointer-events-auto">
         <Link to="/privacy" className="text-muted hover:text-active transition-none uppercase tracking-widest">Privacy</Link>
