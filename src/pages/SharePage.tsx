@@ -1,13 +1,24 @@
-import { useState, useCallback, Suspense, useEffect } from 'react';
+import { useState, useCallback, Suspense, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
 import PageLayout from '@/components/PageLayout';
 import LoadingIndicator from '@/components/LoadingIndicator';
+import * as THREE from 'three';
 
 const SharedModel = ({ url }: { url: string }) => {
   const { scene } = useGLTF(url);
-  return <primitive object={scene} />;
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+
+  useEffect(() => {
+    const box = new THREE.Box3().setFromObject(clonedScene);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = (2 / maxDim) * 0.9; 
+    clonedScene.scale.setScalar(scale);
+  }, [clonedScene]);
+
+  return <primitive object={clonedScene} />;
 };
 
 const ProgressTracker = ({ onError, onLoaded }: { onError: () => void, onLoaded: () => void }) => {

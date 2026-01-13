@@ -260,9 +260,6 @@ const handleModelLoaded = useCallback(() => {
         token || undefined,
         (percent) => {
           setProgress(percent);
-          if (percent > 0 && percent < 99) {
-            setCurrentMessage('UPLOADING...');
-          }
         },
         (message) => {
           setCurrentMessage(message);
