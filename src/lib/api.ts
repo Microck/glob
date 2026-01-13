@@ -104,7 +104,7 @@ export async function optimizeFile(
           } catch (err) {
             reject(new Error('Invalid server response'));
           }
-        } else {
+          } else {
           if (finalError) {
             reject(finalError);
             return;
@@ -113,7 +113,13 @@ export async function optimizeFile(
           try {
             const errorData = JSON.parse(xhr.responseText);
             errorMessage = errorData.message || errorMessage;
-          } catch {}
+          } catch {
+             if (xhr.status === 504) errorMessage = "Server Timeout (504)";
+             else if (xhr.status === 413) errorMessage = "File Too Large (413)";
+             else if (xhr.status === 502) errorMessage = "Bad Gateway (502)";
+             else if (xhr.status === 500) errorMessage = "Server Error (500)";
+             else errorMessage = `Request Failed (${xhr.status})`;
+          }
 
           toast({
             title: 'Error',
