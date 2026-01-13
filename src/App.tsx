@@ -36,7 +36,7 @@ const clerkAppearance = {
     fontFamily: "Chakra Petch",
   },
 elements: {
-    card: "bg-surface border-3 border-muted shadow-brutal mx-auto",
+    card: "bg-surface border-3 border-muted shadow-brutal mx-auto w-full max-w-[480px]",
     headerTitle: "font-display uppercase tracking-tight text-reading",
     headerSubtitle: "font-ui uppercase opacity-60 text-reading",
     socialButtonsBlockButton: "rounded-none border-2 border-muted hover:border-active transition-none bg-surface",
