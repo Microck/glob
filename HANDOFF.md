@@ -6,12 +6,14 @@
 - [x] **Button Widths**: Standardized `GLBViewer` buttons to `w-10 h-10` square.
 - [x] **Loading Progress**: Fixed "not progressing" perception by removing overriding status logic.
 - [x] **Share Page**: Added scaling/centering logic to `SharedModel` so models are always visible.
-- [x] **Polar Checkout**: Updated `Pricing.tsx` to use direct checkout link `https://buy.polar.sh/...` with embed script added to `index.html`.
+- [x] **Polar Checkout**: 
+  - Updated `Pricing.tsx` to use direct checkout link `https://buy.polar.sh/polar_cl_igmpYM4QCYqebgOewWPVGGJeiaLAaDpLB9bQZ3oA3CI` with `data-polar-checkout` attribute.
+  - Added Polar embed script to `index.html`.
 - [x] **Expiration Security**: Removed fallback logic in `optimizeController.ts` that allowed downloading expired files if metadata was missing.
 - [x] **Checkout API**: Implemented `/api/checkout` endpoint (currently unused but available).
 
 ## Notes
-- **Polar Integration**: The checkout now opens via the embed script (modal) or redirects to the Polar checkout page.
+- **Polar Integration**: The checkout now opens via the embed script (modal) using the new link.
 - **Expiration**: Files strictly follow expiration rules now. If metadata is gone, file is 404.
 
 ## Next Steps

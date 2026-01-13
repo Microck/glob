@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Pricing from "./pages/Pricing";
 import HistoryPage from "./pages/History";
+import Success from "./pages/Success";
 import NotFound from "./pages/NotFound";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -85,6 +86,7 @@ const AnimatedRoutes = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/success" element={<Success />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
