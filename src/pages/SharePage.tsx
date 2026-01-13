@@ -17,7 +17,7 @@ class ErrorBoundary extends Component<{ children: ReactNode, onError: (error: Er
 }
 
 const SharedModel = ({ url }: { url: string }) => {
-  const { scene } = useGLTF(url);
+  const { scene } = useGLTF(url, '/');
   const clonedScene = useMemo(() => scene.clone(true), [scene]);
 
   useEffect(() => {
