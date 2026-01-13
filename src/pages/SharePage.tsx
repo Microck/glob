@@ -37,7 +37,7 @@ const SharePage = () => {
         const loader = new GLTFLoader();
         const dracoLoader = new DRACOLoader();
         
-        dracoLoader.setDecoderPath('/'); 
+        dracoLoader.setDecoderPath('/draco/'); 
         dracoLoader.setDecoderConfig({ type: 'js' }); 
         loader.setDRACOLoader(dracoLoader);
 
