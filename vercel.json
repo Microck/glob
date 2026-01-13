@@ -11,6 +11,7 @@
       "use": "@vercel/node",
       "config": {
         "maxDuration": 60,
+        "memory": 1024,
         "includeFiles": [
           "api/src/**/*",
           "node_modules/draco3d/**/*.wasm",
