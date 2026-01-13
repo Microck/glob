@@ -23,21 +23,18 @@ const SharedModel = ({ url }: { url: string }) => {
   return <primitive object={clonedScene} />;
 };
 
-const ProgressTracker = ({ onError, onLoaded }: { onError: () => void, onLoaded: () => void }) => {
-  const { errors, progress, active } = useProgress();
-  
+const OnLoadTrigger = ({ onLoaded }: { onLoaded: () => void }) => {
   useEffect(() => {
-    if (errors.length > 0) {
-      onError();
-    }
+    onLoaded();
+  }, [onLoaded]);
+  return null;
+};
+
+const ErrorTracker = ({ onError }: { onError: () => void }) => {
+  const { errors } = useProgress();
+  useEffect(() => {
+    if (errors.length > 0) onError();
   }, [errors, onError]);
-
-  useEffect(() => {
-    if (!active && progress === 100 && errors.length === 0) {
-      onLoaded();
-    }
-  }, [active, progress, errors, onLoaded]);
-
   return null;
 };
 
@@ -81,10 +78,11 @@ const SharePage = () => {
 
         <div className="flex-1 h-full relative bg-background/50">
           {!error && (
-            <Canvas camera={{ position: [4, 4, 4], fov: 45 }}>
-              <Suspense fallback={null}>
-                <ProgressTracker onError={handleError} onLoaded={handleLoaded} />
-                <ambientLight intensity={0.7} />
+          <Canvas camera={{ position: [4, 4, 4], fov: 45 }}>
+            <ErrorTracker onError={handleError} />
+            <Suspense fallback={null}>
+              <OnLoadTrigger onLoaded={handleLoaded} />
+              <ambientLight intensity={0.7} />
                 <directionalLight position={[10, 10, 5]} intensity={1.2} />
                 <Center>
                   <SharedModel url={modelUrl} />
