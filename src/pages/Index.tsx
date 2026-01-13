@@ -284,8 +284,21 @@ const handleModelLoaded = useCallback(() => {
       }
     } catch (error) {
       console.error('Compression error:', error);
-      setAppState('preview');
+      
+      const msg = error instanceof Error ? error.message : "Unknown error";
+      const isTimeout = msg.includes("504") || msg.includes("Optimization failed");
+      
+      if (isTimeout) {
+        toast({
+          title: "OPTIMIZATION TIMEOUT",
+          description: "The file is too complex for the cloud tier (60s limit). Try reducing texture quality or disabling Draco.",
+          variant: "destructive",
+          duration: 10000
+        });
       }
+      
+      setAppState('preview');
+    }
   }, [file, decimation, dracoLevel, getToken, mode, simpleTarget, desiredPolygons, facesBefore, weld, quantize, draco, textureQuality, userId]);
 
   const handleDownload = useCallback(async () => {
