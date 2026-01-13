@@ -4,8 +4,7 @@
   </a>
 </p>
 
-<p align="center">**ACID BRUTALIST 3D OPTIMIZER**</p>
-<p align="center">High-performance GLB/GLTF compressor with aggressive mesh decimation, Draco compression, and texture resizing.</p>
+<p align="center">high-performance glb compressor for aggressive mesh decimation and geometry optimization.</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-O’Saasy-pink.svg" /></a>
@@ -16,31 +15,9 @@
 
 ---
 
-### **THE ENGINE**
+### quickstart
 
-**glob** is a logic engine for shrinking 3D assets. Built because 50MB GLB files shouldn't exist on the web.
-
-- **Mesh Decimation:** Intelligent polygon reduction using `meshoptimizer`.
-- **Draco Compression:** Google's geometry compression for minimal footprint.
-- **Texture Resizing:** Auto-scale textures to 1K/2K/4K limits to save VRAM.
-- **Bulk Processing:** Queue 10+ files. Get them back optimized.
-- **Visualizer:** Real-time before/after comparison with wireframe/clay modes.
-
-### **THE TIERS**
-
-| Feature | Guest | Globber ($8/mo) |
-| :--- | :--- | :--- |
-| **File Limit** | 300 MB | 500 MB |
-| **Retention** | 10 Minutes | 48 Hours |
-| **Storage** | Local Session | 1 GB Persistent Vault |
-| **Processing** | Standard | Priority Queue |
-| **Bulk** | Single File | Multi-File Batch |
-
----
-
-### **QUICKSTART**
-
-**1. Clone & Install**
+**clone and prep**
 
 ```bash
 git clone https://github.com/microck/glob.git
@@ -48,68 +25,76 @@ cd glob
 npm install
 ```
 
-**2. Configure Environment**
+**env setup**
 
-Copy `.env.example` to `.env` and fill in the keys:
+copy `.env.example`. fill in the keys. you need supabase, clerk, polar, and r2.
 
 ```bash
-# Frontend
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
-VITE_SUPABASE_URL=https://...
-VITE_SUPABASE_ANON_KEY=...
+# frontend
+VITE_CLERK_PUBLISHABLE_KEY=...
+VITE_SUPABASE_URL=...
 VITE_API_URL=http://localhost:3001
 
-# Backend
-CLERK_SECRET_KEY=sk_test_...
-SUPABASE_SERVICE_ROLE_KEY=...
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
+# backend
+CLERK_SECRET_KEY=...
 R2_BUCKET_NAME=glob-models
 POLAR_ACCESS_TOKEN=...
 POLAR_SUCCESS_URL=http://localhost:5173/success?checkout_id={CHECKOUT_ID}
 ```
 
-**3. Run It**
+**run it**
 
-Fire up the twin engines (Frontend + API):
+you need two terminals.
 
 ```bash
-# Terminal 1: API (Port 3001)
+# terminal 1
 npm run api:dev
 
-# Terminal 2: Frontend (Port 5173)
+# terminal 2
 npm run dev
 ```
 
 ---
 
-### **ARCHITECTURE**
+### features
 
-```mermaid
-flowchart LR
-    A[Client] -->|Upload| B[Express API]
-    B -->|Stream| C{Size Check}
-    C -->|Small| D[Memory Buffer]
-    C -->|Large| E[Cloudflare R2]
-    D & E --> F[gltf-transform]
-    F -->|Decimate/Draco| G[Optimized GLB]
-    G --> H[Storage]
-    H -->|Signed URL| A
-```
+glob is a logic engine for shrinking 3d assets. i built it because 50mb glb files shouldn't exist on the web.
 
-**Tech Stack:**
-- **Frontend:** React, Vite, Tailwind, Shadcn/UI, Three.js (R3F)
-- **Backend:** Express, Node.js, gltf-transform
-- **Auth:** Clerk + Supabase (RLS)
-- **Storage:** Cloudflare R2 (S3 Compatible)
-- **Commerce:** Polar.sh
+- **mesh decimation:** removes polygons using `meshoptimizer`. drops weight without losing silhouette.
+- **draco compression:** google's geometry compression for minimal footprint.
+- **texture resizing:** auto-scale textures to 1k/2k/4k limits. saves vram.
+- **bulk processing:** queue 10 files. get them back optimized.
+- **globber tier:** $8/mo via polar. 500mb limits, 48h retention, persistent vault.
 
 ---
 
-### **LICENSE**
+### how it works
 
-**O'Saasy License.**
-You can use this code for internal tools, personal projects, or learning.
-You **cannot** use this code to launch a competing 3D optimization SaaS.
-If you make millions using this, buy me a coffee (or a house).
+```mermaid
+flowchart LR
+    A[Upload] --> B(Welding)
+    B --> C(Decimation)
+    C --> D(Quantization)
+    D --> E(Draco)
+    E --> F[Optimized GLB]
+```
+
+1. **ingest:** parses buffer into document object.
+2. **weld:** merges duplicate vertices. essential before simplification.
+3. **decimate:** collapses edges based on target ratio.
+4. **quantize:** reduces bit-depth of attributes.
+5. **compress:** applies draco for final reduction.
+
+---
+
+### stack
+
+- **frontend:** react, vite, tailwind, shadcn, three.js
+- **backend:** express, node, gltf-transform
+- **infra:** cloudflare r2 (storage), supabase (auth/db), clerk (auth), polar (payments)
+
+---
+
+### license
+
+o'saasy license. use it for internal tools or personal projects. don't use this code to launch a competing 3d optimization service.
