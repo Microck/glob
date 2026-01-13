@@ -68,6 +68,17 @@ const Index = () => {
     }
   }, [appState]);
 
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isModelLoading) {
+      if (progress === 0) setProgress(2);
+      interval = setInterval(() => {
+        setProgress(prev => (prev < 20 ? prev + 1 : prev));
+      }, 100);
+    }
+    return () => clearInterval(interval);
+  }, [isModelLoading]);
+
 
 const handleFileSelect = useCallback((selectedFiles: File[]) => {
     let filesToProcess = selectedFiles;
