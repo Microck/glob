@@ -14,7 +14,8 @@ const SharedModel = ({ url }: { url: string }) => {
     const box = new THREE.Box3().setFromObject(clonedScene);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = (2 / maxDim) * 0.9; 
+    
+    const scale = (4 / maxDim); 
     clonedScene.scale.setScalar(scale);
   }, [clonedScene]);
 
@@ -58,16 +59,18 @@ const SharePage = () => {
 
   return (
     <PageLayout disableScroll>
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 w-full h-full">
         {!error && (
-          <Canvas camera={{ position: [3, 3, 3], fov: 45 }}>
+          <Canvas camera={{ position: [-4, 2, 6], fov: 35 }}>
             <Suspense fallback={null}>
               <ProgressTracker onError={handleError} onLoaded={handleLoaded} />
               <ambientLight intensity={0.7} />
               <directionalLight position={[10, 10, 5]} intensity={1.2} />
-              <Center>
-                <SharedModel url={modelUrl} />
-              </Center>
+              <group position={[1, 0, 0]}>
+                <Center>
+                  <SharedModel url={modelUrl} />
+                </Center>
+              </group>
               <OrbitControls enableDamping={false} />
               <Environment preset="warehouse" />
             </Suspense>
@@ -75,7 +78,14 @@ const SharePage = () => {
         )}
       </div>
 
-      <div className="relative z-10 pointer-events-none">
+      <div className="relative z-10 pointer-events-none h-full flex flex-col justify-between p-8">
+        <div className="flex flex-col">
+          <span className="font-ui text-[10px] text-muted uppercase tracking-widest">SHARED MODEL</span>
+          <span className="font-mono text-[10px] text-reading">{id}</span>
+        </div>
+      </div>
+
+      <div className="relative z-10 pointer-events-none h-full flex flex-col justify-between p-8">
         <div className="flex flex-col">
           <span className="font-ui text-[10px] text-muted uppercase tracking-widest">SHARED MODEL</span>
           <span className="font-mono text-[10px] text-reading">{id}</span>
