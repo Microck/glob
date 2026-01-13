@@ -1,8 +1,6 @@
 import { WebIO, Document, Primitive, Accessor } from "@gltf-transform/core";
 import { KHRDracoMeshCompression } from "@gltf-transform/extensions";
 import { draco, quantize, simplify, textureCompress, weld } from "@gltf-transform/functions";
-import draco3d from "draco3d";
-import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from "meshoptimizer";
 
 export type OptimizeOptions = {
   decimateRatio: number;
@@ -21,11 +19,18 @@ export type OptimizeStats = {
 };
 
 let ioPromise: Promise<WebIO> | null = null;
+let MeshoptSimplifier: any;
 
 async function getIO(): Promise<WebIO> {
   if (!ioPromise) {
     ioPromise = (async () => {
       try {
+        const { default: draco3d } = await import("draco3d");
+        const meshopt = await import("meshoptimizer");
+        
+        const { MeshoptDecoder, MeshoptEncoder } = meshopt;
+        MeshoptSimplifier = meshopt.MeshoptSimplifier;
+
         await MeshoptDecoder.ready;
         await MeshoptEncoder.ready;
         await MeshoptSimplifier.ready;
@@ -114,7 +119,7 @@ self.onmessage = async (e: MessageEvent) => {
       self.postMessage({ type: 'progress', id, progress: 25, message: 'WELDED VERTICES' });
     }
 
-    if (options.decimateRatio < 1) {
+    if (options.decimateRatio < 1 && MeshoptSimplifier) {
       await document.transform(
         simplify({
           simplifier: MeshoptSimplifier,
@@ -156,7 +161,6 @@ self.onmessage = async (e: MessageEvent) => {
     const optimizedArrayBuffer = await io.writeBinary(document);
     self.postMessage({ type: 'progress', id, progress: 90, message: 'FINALIZING' });
 
-    // Use explicit postMessage signature for Worker
     (self as unknown as Worker).postMessage({
       type: 'complete',
       id,

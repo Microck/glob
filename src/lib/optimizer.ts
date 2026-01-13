@@ -1,5 +1,20 @@
 import OptimizerWorker from '../workers/optimizer.worker?worker';
-import type { OptimizeOptions, OptimizeStats } from '../workers/optimizer.worker';
+
+export type OptimizeOptions = {
+  decimateRatio: number;
+  dracoLevel: number;
+  textureQuality?: number;
+  weld?: boolean;
+  quantize?: boolean;
+  draco?: boolean;
+};
+
+export type OptimizeStats = {
+  facesBefore: number;
+  facesAfter: number;
+  verticesBefore: number;
+  verticesAfter: number;
+};
 
 export type LocalOptimizeResponse = {
   status: 'success' | 'error';
@@ -41,7 +56,9 @@ export function optimizeFileLocal(
     };
 
     worker.onerror = (err) => {
-      reject(new Error('Worker error: ' + err.message));
+      console.error("Worker lifecycle error:", err);
+      const msg = err instanceof ErrorEvent ? err.message : 'Unknown worker error';
+      reject(new Error('Worker error: ' + msg));
       worker.terminate();
     };
 
