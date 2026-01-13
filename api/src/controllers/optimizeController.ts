@@ -514,11 +514,41 @@ optimizeRouter.post("/activate-share/:id", async (req: Request, res: Response) =
     return res.status(404).json({ status: "error", message: "Asset not found" });
   }
 
+  if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+    return res.status(410).json({ status: "error", message: "Asset has expired" });
+  }
+
   const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
   metadata.expiresAt = newExpiresAt;
 
   await writeMetadata(id, metadata);
   return res.json({ status: "success", expiresAt: newExpiresAt });
+});
+
+optimizeRouter.get("/share-info/:id", async (req: Request, res: Response) => {
+  const id = req.params.id;
+  
+  if (!/^[0-9a-f-]{36}$/i.test(id)) {
+    return res.status(400).json({ status: "error", message: "Invalid id" });
+  }
+
+  const metadata = await readMetadata(id);
+
+  if (!metadata) {
+    return res.status(404).json({ status: "error", message: "Model not found" });
+  }
+
+  if (metadata.expiresAt && new Date(metadata.expiresAt) < new Date()) {
+    return res.status(410).json({ status: "error", message: "Share link has expired" });
+  }
+
+  return res.json({
+    originalSize: metadata.originalSize,
+    optimizedSize: metadata.optimizedSize,
+    stats: metadata.stats,
+    expiresAt: metadata.expiresAt,
+    downloadFilename: metadata.downloadFilename
+  });
 });
 
 optimizeRouter.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
