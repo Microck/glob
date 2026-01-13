@@ -382,17 +382,6 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
   const metadata = await readMetadata(id);
 
   if (!metadata) {
-    if (isR2Configured()) {
-      const fallbackKey = `${METADATA_PREFIX}/${id}.glb`;
-      try {
-        const fileBuffer = await getFromR2(fallbackKey);
-        res.setHeader("Content-Type", "model/gltf-binary");
-        res.setHeader("Content-Disposition", `attachment; filename="${id}.glb"`);
-        return res.send(fileBuffer);
-      } catch {
-        return res.status(404).json({ status: "error", message: "File not found" });
-      }
-    }
     return res.status(404).json({ status: "error", message: "File not found" });
   }
 
