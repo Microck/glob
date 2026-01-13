@@ -89,7 +89,7 @@ const SharePage = () => {
                 <Center>
                   <SharedModel url={modelUrl} />
                 </Center>
-                <OrbitControls enableDamping={false} />
+                <OrbitControls enableDamping={false} autoRotate autoRotateSpeed={0.5} />
                 <Environment preset="warehouse" />
               </Suspense>
             </Canvas>
