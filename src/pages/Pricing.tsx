@@ -106,8 +106,8 @@ const Pricing = () => {
                 <Check className="w-4 h-4 text-active" /> Optimization History
               </li>
             </ul>
-            <a 
-              href="https://polar.sh/micr.dev/products/99118e8e-5aaa-4196-91f9-686e8e1d7e75" 
+<a 
+              href="https://polar.sh/micr/products/99118e8e-5aaa-4196-91f9-686e8e1d7e75" 
               target="_blank" 
               rel="noreferrer"
               className="w-full bg-active text-surface font-ui text-sm py-3 text-center hover:bg-reading transition-none font-bold uppercase relative z-10"
