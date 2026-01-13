@@ -18,9 +18,6 @@ const Success = () => {
   return (
     <PageLayout isCentered>
       <div className="flex flex-col items-center justify-center text-center max-w-lg mx-auto p-8 bg-surface border-3 border-active shadow-brutal relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
-          <Check className="w-32 h-32" />
-        </div>
         
         <div className="w-16 h-16 bg-active text-surface flex items-center justify-center mb-6">
           <Check className="w-8 h-8" />

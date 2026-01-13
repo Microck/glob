@@ -1,20 +1,15 @@
 # Session Handoff
 
 ## Completed Tasks
-- [x] **Signup Footer**: Fixed layout by forcing `flex-wrap` and `width: 100%` via `index.css` override.
-- [x] **Clerk Styling**: Fixed black text in user menu by forcing `text-reading` color via `!important` CSS overrides.
-- [x] **Button Widths**: Standardized `GLBViewer` buttons to `w-10 h-10` square.
-- [x] **Loading Progress**: Fixed "not progressing" perception by removing overriding status logic.
-- [x] **Share Page**: Added scaling/centering logic to `SharedModel` so models are always visible.
-- [x] **Polar Checkout**: 
-  - Updated `Pricing.tsx` to use direct checkout link `https://buy.polar.sh/polar_cl_igmpYM4QCYqebgOewWPVGGJeiaLAaDpLB9bQZ3oA3CI` with `data-polar-checkout` attribute.
-  - Added Polar embed script to `index.html`.
-- [x] **Expiration Security**: Removed fallback logic in `optimizeController.ts` that allowed downloading expired files if metadata was missing.
-- [x] **Checkout API**: Implemented `/api/checkout` endpoint (currently unused but available).
+- [x] **Success URL**: Configured as `https://glob.micr.dev/success?checkout_id={CHECKOUT_ID}`.
+- [x] **Success Page**: Created `/success` route with confirmation UI.
+- [x] **Polar Integration**: Configured `Pricing.tsx` with direct checkout link `https://buy.polar.sh/polar_cl_igmpYM4QCYqebgOewWPVGGJeiaLAaDpLB9bQZ3oA3CI` and embedded checkout script.
+- [x] **UI Fixes**: Corrected footer width, button sizing, loading progress, text colors.
+- [x] **Security**: Enforced strict file expiration logic (removed fallback for orphan files).
 
-## Notes
-- **Polar Integration**: The checkout now opens via the embed script (modal) using the new link.
-- **Expiration**: Files strictly follow expiration rules now. If metadata is gone, file is 404.
+## Configuration Required
+- **Polar Dashboard**: Set the Success URL for your product to:
+  `https://glob.micr.dev/success?checkout_id={CHECKOUT_ID}`
 
-## Next Steps
-- Verify the checkout flow with the new link.
+## Deployment
+- Code pushed to `main`.
