@@ -8,6 +8,8 @@
 - [x] **SharePage Error Handling**: Added `ErrorBoundary`, `ErrorTracker` (loader errors), `OnLoadTrigger` (success), and **30s Timeout** to prevent infinite loading.
 - [x] **API Error Reporting**: Improved `api.ts` to parse and display HTTP status codes (504, 413, 500) instead of generic "Optimization failed".
 - [x] **Expiration Fix**: Removed fallback in `optimizeController.ts` that allowed downloading expired files if metadata was missing.
+- [x] **Backend Config**: Increased Vercel function memory to 1024MB in `vercel.json` to reduce OOM errors.
+- [x] **Frontend UX**: Added specific toast advice for 504 timeouts (suggesting reduced quality/draco).
 
 ## Critical Note on "Optimization Failed"
 - If you see **"Gateway Timeout (504)"**, the file is too large/complex for Vercel's **60-second execution limit**.

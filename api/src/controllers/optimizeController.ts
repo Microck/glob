@@ -11,7 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
-import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured, listMetadataKeys } from "../services/r2Service.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured, listMetadataKeys, copyInR2 } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
@@ -209,6 +209,67 @@ setInterval(async () => {
   } catch {
   }
 }, 60 * 60 * 1000);
+
+optimizeRouter.post("/register-result", optionalAuthMiddleware, async (req: Request, res: Response) => {
+  const { storageKey, originalName, stats, originalSize, optimizedSize } = req.body;
+  
+  if (!storageKey || !originalName || !stats) {
+    return res.status(400).json({ status: "error", message: "Missing metadata" });
+  }
+
+  if (!/^uploads\/[0-9a-f-]+\.(glb|gltf)$/i.test(storageKey)) {
+    return res.status(400).json({ status: "error", message: "Invalid storage key" });
+  }
+
+  const memberId = (req as any).memberId;
+  const access = await getAccessLevel(memberId);
+  const expirationMs = access.hasAccess ? 2 * 24 * 60 * 60 * 1000 : 10 * 60 * 1000;
+
+  const jobId = randomUUID();
+  const resultKey = `optimized/${jobId}.glb`;
+
+  try {
+    await copyInR2(storageKey, resultKey);
+    await deleteFromR2(storageKey);
+  } catch (e) {
+    return res.status(500).json({ status: "error", message: "Failed to process storage" });
+  }
+
+  const baseName = originalName.replace(/\.(glb|gltf)$/i, '');
+  const ext = originalName.match(/\.(glb|gltf)$/i)?.[0] || '.glb';
+  const downloadFilename = `${baseName}_glob-micr-dev${ext}`;
+
+  const metadata = {
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + expirationMs).toISOString(), 
+    originalSize,
+    optimizedSize,
+    stats,
+    storageKey: resultKey,
+    downloadFilename
+  };
+  await writeMetadata(jobId, metadata);
+
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+  const downloadUrl = `${protocol}://${req.get("host")}/api/download/${jobId}`;
+
+  if (memberId && access.hasAccess) {
+    await saveOptimization({
+      userId: memberId,
+      originalName,
+      originalSize,
+      optimizedSize,
+      stats,
+      downloadUrl
+    });
+    await ingestOptimization(memberId).catch(() => undefined);
+  }
+
+  return res.json({
+    status: "success",
+    downloadUrl
+  });
+});
 
 optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), async (req: Request, res: Response) => {
   const storageKey = req.body.storageKey as string;

@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand, ListObjectsV2Command, CopyObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -180,4 +180,22 @@ export async function listMetadataKeys(prefix: string): Promise<string[]> {
   } while (continuationToken);
 
   return keys;
+}
+
+export async function copyInR2(sourceKey: string, destKey: string) {
+  const r2 = getR2();
+  if (!r2) {
+    const localSource = path.join(TMP_DIR, sourceKey);
+    const localDest = path.join(TMP_DIR, destKey);
+    await fs.copyFile(localSource, localDest);
+    return;
+  }
+
+  const command = new CopyObjectCommand({
+    Bucket: BUCKET_NAME,
+    CopySource: `${BUCKET_NAME}/${sourceKey}`,
+    Key: destKey,
+  });
+
+  await r2.send(command);
 }
