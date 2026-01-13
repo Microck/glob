@@ -1,20 +1,18 @@
 # Session Handoff
 
 ## Completed Tasks
-- [x] **Favicons**: Updated `public/` and `index.html` references.
-- [x] **Repo Cleanup**: Removed `tmp/`, `HANDOFF.md`, etc.
-- [x] **SharePage Redesign**: Split-screen layout (Metadata Left, Canvas Right) with full-height flex container.
-- [x] **SharePage Model**: Scaling increased (`3/maxDim`), auto-rotation enabled, positioned right.
-- [x] **SharePage Error Handling**: Added `ErrorBoundary`, `ErrorTracker` (loader errors), `OnLoadTrigger` (success), and **30s Timeout** to prevent infinite loading.
-- [x] **API Error Reporting**: Improved `api.ts` to parse and display HTTP status codes (504, 413, 500) instead of generic "Optimization failed".
-- [x] **Expiration Fix**: Removed fallback in `optimizeController.ts` that allowed downloading expired files if metadata was missing.
-- [x] **Backend Config**: Increased Vercel function memory to 1024MB in `vercel.json` to reduce OOM errors.
-- [x] **Frontend UX**: Added specific toast advice for 504 timeouts (suggesting reduced quality/draco).
+- [x] **Client-Side Optimization**: Migrated `gltf-transform` logic to a Web Worker (`src/workers/optimizer.worker.ts`).
+- [x] **Vercel Timeout Fix**: Processing now happens on the user's device, eliminating the 60s server timeout.
+- [x] **Hybrid Workflow**: 
+  1. Optimize Locally (Worker).
+  2. Upload Result to R2 (Direct Upload).
+  3. Register Result with Backend (for History/Share).
+- [x] **WASM Assets**: Copied Draco decoder/encoder to `public/`.
+- [x] **API Update**: Added `POST /api/register-result` to `optimizeController.ts`.
 
-## Critical Note on "Optimization Failed"
-- If you see **"Gateway Timeout (504)"**, the file is too large/complex for Vercel's **60-second execution limit**.
-- **R2 Storage** handles the *file storage*, but the *processing logic* (`gltf-transform`) still runs on Vercel's CPU.
-- **Solution**: Deploy the API to a platform without execution time limits (e.g., Render, Railway, DigitalOcean), or upgrade Vercel to Pro (300s limit).
+## Notes
+- **Performance**: Large files depend on the user's CPU/RAM. Browser might warn "High Memory Usage" for very large files (>200MB), but it won't timeout.
+- **Server**: The server is now only responsible for Auth, Metadata, and R2 signing. Heavy lifting is distributed.
 
 ## Deployment
 - All changes pushed to `main`.

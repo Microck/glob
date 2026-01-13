@@ -25,21 +25,37 @@ let ioPromise: Promise<WebIO> | null = null;
 async function getIO(): Promise<WebIO> {
   if (!ioPromise) {
     ioPromise = (async () => {
-      await MeshoptDecoder.ready;
-      await MeshoptEncoder.ready;
-      await MeshoptSimplifier.ready;
+      try {
+        await MeshoptDecoder.ready;
+        await MeshoptEncoder.ready;
+        await MeshoptSimplifier.ready;
 
-      const decoder = await draco3d.createDecoderModule({});
-      const encoder = await draco3d.createEncoderModule({});
+        const [decoderWasm, encoderWasm] = await Promise.all([
+          fetch('/draco_decoder.wasm').then(r => {
+            if (!r.ok) throw new Error(`Failed to load draco_decoder.wasm: ${r.status}`);
+            return r.arrayBuffer();
+          }),
+          fetch('/draco_encoder.wasm').then(r => {
+            if (!r.ok) throw new Error(`Failed to load draco_encoder.wasm: ${r.status}`);
+            return r.arrayBuffer();
+          })
+        ]);
 
-      return new WebIO()
-        .registerExtensions([KHRDracoMeshCompression])
-        .registerDependencies({
-          "draco3d.decoder": decoder,
-          "draco3d.encoder": encoder,
-          "meshopt.decoder": MeshoptDecoder,
-          "meshopt.encoder": MeshoptEncoder,
-        });
+        const decoder = await draco3d.createDecoderModule({ wasmBinary: decoderWasm });
+        const encoder = await draco3d.createEncoderModule({ wasmBinary: encoderWasm });
+
+        return new WebIO()
+          .registerExtensions([KHRDracoMeshCompression])
+          .registerDependencies({
+            "draco3d.decoder": decoder,
+            "draco3d.encoder": encoder,
+            "meshopt.decoder": MeshoptDecoder,
+            "meshopt.encoder": MeshoptEncoder,
+          });
+      } catch (err) {
+        console.error("Failed to initialize worker dependencies:", err);
+        throw err;
+      }
     })();
   }
   return ioPromise;
