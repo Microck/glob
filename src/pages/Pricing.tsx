@@ -109,7 +109,7 @@ const apiBase = import.meta.env.VITE_API_URL || '';
               </li>
             </ul>
 <a 
-              href="https://buy.polar.sh/polar_cl_PHwCDuo81z89suF4rnjrjtnPd3fqgATeNsEtN1FMjJX" 
+              href="https://buy.polar.sh/polar_cl_igmpYM4QCYqebgOewWPVGGJeiaLAaDpLB9bQZ3oA3CI" 
               data-polar-checkout
               data-polar-checkout-theme="dark"
               className="w-full bg-active text-surface font-ui text-sm py-3 text-center hover:bg-reading transition-none font-bold uppercase relative z-10 block"

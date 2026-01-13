@@ -1,17 +1,18 @@
 # Session Handoff
 
 ## Completed Tasks
-- [x] **Signup Footer**: Fixed width/layout by adding `flex-wrap gap-2` to `footerAction` in `App.tsx`.
-- [x] **Button Widths**: Standardized `GLBViewer` buttons to `w-10 h-10 flex items-center justify-center`.
-- [x] **Loading Progress**: Fixed "not progressing" perception by removing code in `Index.tsx` that forced "UPLOADING..." status, allowing backend messages to show.
-- [x] **Share Page**: Added `useMemo` and scaling logic to `SharedModel` in `SharePage.tsx` to ensure models are centered and visible.
-- [x] **Clerk Styling**: Fixed "Manage Account" / "Sign out" text color by adding `userButtonPopoverActionButton` styling in `App.tsx`.
+- [x] **Signup Footer**: Fixed layout by forcing `flex-wrap` and `width: 100%` via `index.css` override.
+- [x] **Clerk Styling**: Fixed black text in user menu by forcing `text-reading` color via `!important` CSS overrides.
+- [x] **Button Widths**: Standardized `GLBViewer` buttons to `w-10 h-10` square.
+- [x] **Loading Progress**: Fixed "not progressing" perception by removing overriding status logic.
+- [x] **Share Page**: Added scaling/centering logic to `SharedModel` so models are always visible.
+- [x] **Polar Checkout**: Updated `Pricing.tsx` to use direct checkout link `https://buy.polar.sh/...` with embed script added to `index.html`.
+- [x] **Expiration Security**: Removed fallback logic in `optimizeController.ts` that allowed downloading expired files if metadata was missing.
+- [x] **Checkout API**: Implemented `/api/checkout` endpoint (currently unused but available).
 
-## Unresolved
-- **Upgrade Link**: `https://polar.sh/micr.dev/products/99118e8e-5aaa-4196-91f9-686e8e1d7e75` returns 404. 
-  - UUID matches what was provided.
-  - Likely `micr.dev` handle on Polar is incorrect or product is archived.
-  - Needs correct Polar organization slug.
+## Notes
+- **Polar Integration**: The checkout now opens via the embed script (modal) or redirects to the Polar checkout page.
+- **Expiration**: Files strictly follow expiration rules now. If metadata is gone, file is 404.
 
 ## Next Steps
-- Update `VITE_POLAR_URL` or fix the slug in `Pricing.tsx` once correct URL is known.
+- Verify the checkout flow with the new link.
