@@ -15,7 +15,16 @@ const ProgressBar = ({ progress, message }: ProgressBarProps) => {
   const isComplete = message === 'COMPLETE' && progress === 100;
 
   useEffect(() => {
-    setDisplayProgress(progress);
+    const obj = { val: displayProgress };
+    const tween = gsap.to(obj, {
+      val: progress,
+      duration: 0.5,
+      ease: 'power1.out',
+      onUpdate: () => setDisplayProgress(Math.floor(obj.val))
+    });
+    return () => {
+      tween.kill();
+    };
   }, [progress]);
 
   useEffect(() => {

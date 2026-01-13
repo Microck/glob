@@ -34,7 +34,18 @@ export function optimizeFileLocal(
     const worker = new OptimizerWorker();
     const id = Math.random().toString(36).substr(2, 9);
 
+    let fakeProgress = 0;
+    const fakeInterval = setInterval(() => {
+      fakeProgress += 1;
+      if (fakeProgress > 15) {
+        clearInterval(fakeInterval);
+      } else {
+        onProgress?.(fakeProgress, "LOADING FILE...");
+      }
+    }, 100);
+
     worker.onmessage = (e) => {
+      clearInterval(fakeInterval);
       const { type, id: msgId, progress, message, result, stats, error } = e.data;
       if (msgId !== id) return;
 
