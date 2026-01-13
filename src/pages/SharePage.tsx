@@ -1,4 +1,4 @@
-import { useState, useCallback, Suspense, useEffect, useMemo } from 'react';
+import { useState, useCallback, Suspense, useEffect, useMemo, Component, ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
@@ -6,6 +6,15 @@ import { Download } from 'lucide-react';
 import PageLayout from '@/components/PageLayout';
 import LoadingIndicator from '@/components/LoadingIndicator';
 import * as THREE from 'three';
+
+class ErrorBoundary extends Component<{ children: ReactNode, onError: (error: Error) => void }> {
+  componentDidCatch(error: Error) {
+    this.props.onError(error);
+  }
+  render() {
+    return this.props.children;
+  }
+}
 
 const SharedModel = ({ url }: { url: string }) => {
   const { scene } = useGLTF(url);
@@ -46,7 +55,8 @@ const SharePage = () => {
   const apiBase = import.meta.env.VITE_API_URL || '';
   const modelUrl = `${apiBase}/api/download/${id}`;
 
-  const handleError = useCallback(() => {
+  const handleError = useCallback((err?: Error) => {
+    console.error("Model load error:", err);
     setError("EXPIRED OR NOT FOUND");
     setIsLoading(false);
   }, []);
@@ -78,18 +88,20 @@ const SharePage = () => {
 
         <div className="flex-1 h-full relative bg-background/50">
           {!error && (
-          <Canvas camera={{ position: [4, 4, 4], fov: 45 }}>
-            <ErrorTracker onError={handleError} />
-            <Suspense fallback={null}>
-              <OnLoadTrigger onLoaded={handleLoaded} />
-              <ambientLight intensity={0.7} />
-                <directionalLight position={[10, 10, 5]} intensity={1.2} />
-                <Center>
-                  <SharedModel url={modelUrl} />
-                </Center>
-                <OrbitControls enableDamping={false} autoRotate autoRotateSpeed={0.5} />
-                <Environment preset="warehouse" />
-              </Suspense>
+            <Canvas camera={{ position: [4, 4, 4], fov: 45 }}>
+              <ErrorTracker onError={handleError} />
+              <ErrorBoundary onError={handleError}>
+                <Suspense fallback={null}>
+                  <OnLoadTrigger onLoaded={handleLoaded} />
+                  <ambientLight intensity={0.7} />
+                  <directionalLight position={[10, 10, 5]} intensity={1.2} />
+                  <Center>
+                    <SharedModel url={modelUrl} />
+                  </Center>
+                  <OrbitControls enableDamping={false} autoRotate autoRotateSpeed={0.5} />
+                  <Environment preset="warehouse" />
+                </Suspense>
+              </ErrorBoundary>
             </Canvas>
           )}
         </div>
