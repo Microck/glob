@@ -3,6 +3,7 @@ import express from "express";
 import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { optimizeRouter } from "./src/controllers/optimizeController.js";
+import { checkoutRouter } from "./src/controllers/checkoutController.js";
 import { webhookRouter } from "./src/controllers/webhookController.js";
 import { getUploadUrl } from "./src/services/r2Service.js";
 import path from "node:path";
@@ -57,6 +58,7 @@ app.get("/api/get-upload-url", async (req, res) => {
 });
 
 app.use("/api/webhooks", express.text({ type: "application/json" }), webhookRouter);
+app.use("/api/checkout", checkoutRouter);
 app.use(express.json());
 app.use("/api", optimizeRouter);
 
