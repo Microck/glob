@@ -16,6 +16,8 @@ const Pricing = () => {
     return `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 -1 26 26'%3E%3Cpath d='${pawPath}' fill='${encodedColor}' fill-opacity='${opacity}' transform='rotate(${rotation}, 13, 12) scale(${size/26})' transform-origin='center'/%3E%3C/svg%3E")`;
   };
 
+const apiBase = import.meta.env.VITE_API_URL || '';
+  
   return (
     <PageLayout isCentered={true}>
       <div className="flex flex-col items-center w-full">
@@ -107,10 +109,10 @@ const Pricing = () => {
               </li>
             </ul>
 <a 
-              href="https://polar.sh/micr/products/99118e8e-5aaa-4196-91f9-686e8e1d7e75" 
-              target="_blank" 
-              rel="noreferrer"
-              className="w-full bg-active text-surface font-ui text-sm py-3 text-center hover:bg-reading transition-none font-bold uppercase relative z-10"
+              href="https://buy.polar.sh/polar_cl_PHwCDuo81z89suF4rnjrjtnPd3fqgATeNsEtN1FMjJX" 
+              data-polar-checkout
+              data-polar-checkout-theme="dark"
+              className="w-full bg-active text-surface font-ui text-sm py-3 text-center hover:bg-reading transition-none font-bold uppercase relative z-10 block"
             >
               Upgrade Now
             </a>

@@ -202,3 +202,24 @@
     line-height: 0.9;
   }
 }
+
+/* Clerk Overrides */
+.cl-footerAction {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+}
+
+.cl-userButtonPopoverActionButton, 
+.cl-userButtonPopoverActionButtonText,
+.cl-userButtonPopoverActionButtonIcon {
+  color: hsl(var(--text-reading)) !important;
+}
+
+.cl-userButtonPopoverActionButton:hover,
+.cl-userButtonPopoverActionButton:hover .cl-userButtonPopoverActionButtonText,
+.cl-userButtonPopoverActionButton:hover .cl-userButtonPopoverActionButtonIcon {
+  color: hsl(var(--text-active)) !important;
+}
