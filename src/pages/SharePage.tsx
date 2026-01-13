@@ -61,6 +61,17 @@ const SharePage = () => {
     setIsLoading(false);
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoading) {
+        console.error("Model load timed out");
+        setError("TIMEOUT - CHECK NETWORK");
+        setIsLoading(false);
+      }
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
+
   const handleLoaded = useCallback(() => {
     setIsLoading(false);
   }, []);
