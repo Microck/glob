@@ -54,6 +54,7 @@ const Index = () => {
   const [verticesAfter, setVerticesAfter] = useState(0);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const prevStateRef = useRef<AppState>(appState);
 
@@ -68,7 +69,7 @@ const Index = () => {
   }, [appState]);
 
 
-  const handleFileSelect = useCallback((selectedFiles: File[]) => {
+const handleFileSelect = useCallback((selectedFiles: File[]) => {
     let filesToProcess = selectedFiles;
 
     if (selectedFiles.length > 1 && !userId) {
@@ -92,10 +93,15 @@ const Index = () => {
     
     const mainFile = filesToProcess[0];
     
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(URL.createObjectURL(mainFile));
+    
     setDesiredSize(Math.floor(mainFile.size / 1024 / 1024 * 0.8));
     setDesiredPolygons(Math.floor(10000 / 1000) * 1000);
     setIsModelLoading(true);
-  }, [userId, toast]);
+  }, [userId, toast, previewUrl]);
 
   const handleRemoveFile = useCallback((index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
@@ -176,13 +182,17 @@ const handleModelLoaded = useCallback(() => {
   }, []);
 
   const handleReset = useCallback(() => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     setFiles([]);
     setAppState('idle');
     setProgress(0);
     setCompressedSize(0);
     setIsModelLoading(false);
     setViewingIndex(null);
-  }, []);
+  }, [previewUrl]);
 
 
 
@@ -216,7 +226,7 @@ const handleModelLoaded = useCallback(() => {
     try {
       const extension = targetFile.name.match(/\.(glb|gltf)$/i)?.[0] || '.glb';
       const baseName = targetFile.name.replace(/\.(glb|gltf)$/i, '');
-      const newFileName = `${baseName}-glob_micr_dev${extension}`;
+      const newFileName = `${baseName}_glob-micr-dev${extension}`;
       
       await downloadFile(targetUrl, newFileName);
     } catch (error) {
@@ -287,7 +297,7 @@ const handleModelLoaded = useCallback(() => {
     try {
       const extension = file.name.match(/\.(glb|gltf)$/i)?.[0] || '.glb';
       const baseName = file.name.replace(/\.(glb|gltf)$/i, '');
-      const newFileName = `${baseName}-glob_micr_dev${extension}`;
+      const newFileName = `${baseName}_glob-micr-dev${extension}`;
       
       await downloadFile(downloadUrl, newFileName);
     } catch (error) {
@@ -325,7 +335,7 @@ const handleModelLoaded = useCallback(() => {
       {appState === 'preview' && file && (
         <div className="w-full flex flex-col items-center">
           <div className="w-full flex-shrink-0">
-            <GLBViewer file={file} onReset={handleReset} />
+            <GLBViewer file={file} objectUrl={previewUrl || undefined} onReset={handleReset} />
           </div>
           <div className="mt-0 w-full">
 
@@ -386,10 +396,11 @@ const handleModelLoaded = useCallback(() => {
             </>
           )}
           
-            {isModelLoading && file && files.length === 1 && (
+{isModelLoading && file && files.length === 1 && previewUrl && (
               <div className="absolute inset-0 opacity-0 pointer-events-none" style={{ zIndex: -100 }}>
                 <GLBViewer 
-                  file={file} 
+                  file={file}
+                  objectUrl={previewUrl}
                   onReset={handleReset} 
                   onReady={handleModelLoaded} 
                   onProgress={handleModelProgress}

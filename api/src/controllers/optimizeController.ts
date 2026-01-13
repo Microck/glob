@@ -11,7 +11,7 @@ import { z } from "zod";
 import { processGlb } from "../services/gltfService.js";
 import { getAccessLevel, getStorageUsage } from "../services/entitlementService.js";
 import { saveOptimization, getOptimizations, deleteOptimization, decrementStorageUsage } from "../services/dbService.js";
-import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured } from "../services/r2Service.js";
+import { uploadToR2, getDownloadUrl, deleteFromR2, getUploadUrl, getFromR2, isR2Configured, listMetadataKeys } from "../services/r2Service.js";
 import { ingestOptimization } from "../services/polarService.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/authMiddleware.js";
 
@@ -179,15 +179,16 @@ optimizeRouter.delete("/history/:id", authMiddleware, async (req: Request, res: 
 
 setInterval(async () => {
   try {
-    const files = await fs.readdir(OPTIMIZED_DIR);
-    for (const file of files) {
-      if (!file.endsWith('.json')) continue;
+    const metadataKeys = await listMetadataKeys(METADATA_PREFIX);
+    
+    for (const key of metadataKeys) {
+      if (!key.endsWith('.json')) continue;
       
-      const metaPath = path.join(OPTIMIZED_DIR, file);
+      const id = key.replace(`${METADATA_PREFIX}/`, '').replace('.json', '');
       
       try {
-        const metaContent = await fs.readFile(metaPath, 'utf-8');
-        const metadata = JSON.parse(metaContent);
+        const metadata = await readMetadata(id);
+        if (!metadata) continue;
         
         const now = new Date();
         const expiresAt = metadata.expiresAt ? new Date(metadata.expiresAt) : null;
@@ -200,14 +201,14 @@ setInterval(async () => {
           if (metadata.storageKey) {
             await deleteFromR2(metadata.storageKey).catch(() => undefined);
           }
-          await fs.unlink(metaPath).catch(() => undefined);
+          await deleteMetadata(id);
         }
       } catch {
       }
     }
   } catch {
   }
-}, 60 * 60 * 1000); 
+}, 60 * 60 * 1000);
 
 optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), async (req: Request, res: Response) => {
   const storageKey = req.body.storageKey as string;
@@ -310,13 +311,19 @@ optimizeRouter.post("/optimize", optionalAuthMiddleware, upload.single("file"), 
     await uploadToR2(resultKey, optimizedBuffer);
     sendProgress(95, "uploading result");
     
+    const originalName = req.body.originalName || req.file?.originalname || "model.glb";
+    const baseName = originalName.replace(/\.(glb|gltf)$/i, '');
+    const ext = originalName.match(/\.(glb|gltf)$/i)?.[0] || '.glb';
+    const downloadFilename = `${baseName}_glob-micr-dev${ext}`;
+
     const metadata = {
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + expirationMs).toISOString(), 
       originalSize: actualOriginalSize,
       optimizedSize: optimizedBuffer.byteLength,
       stats,
-      storageKey: resultKey
+      storageKey: resultKey,
+      downloadFilename
     };
     await writeMetadata(jobId, metadata);
     sendProgress(98, "writing metadata");
@@ -400,8 +407,9 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
   if (isR2Configured()) {
     try {
       const fileBuffer = await getFromR2(metadata.storageKey);
+      const filename = metadata.downloadFilename || `${id}.glb`;
       res.setHeader("Content-Type", "model/gltf-binary");
-      res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
       return res.send(fileBuffer);
     } catch {
       return res.status(404).json({ status: "error", message: "File not found" });
@@ -412,8 +420,9 @@ optimizeRouter.get("/download/:id", async (req: Request, res: Response) => {
 
   if (downloadUrl.startsWith("/api/local-download/")) {
     const localPath = path.join(OPTIMIZED_DIR, metadata.storageKey);
+    const filename = metadata.downloadFilename || `${id}.glb`;
     res.setHeader("Content-Type", "model/gltf-binary");
-    res.setHeader("Content-Disposition", `attachment; filename="${metadata.storageKey}"`);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     const fileBuffer = await fs.readFile(localPath);
     return res.send(fileBuffer);
   }

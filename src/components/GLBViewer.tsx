@@ -213,6 +213,7 @@ const SceneContent = ({ objectUrl, onModelLoaded, controlsRef, resetTrigger, wir
 
 interface GLBViewerProps {
   file: File;
+  objectUrl?: string;
   onReset: () => void;
   onReady?: () => void;
   onProgress?: (percent: number) => void;
@@ -228,8 +229,9 @@ const ModelProgressReporter = ({ onProgress }: { onProgress?: (p: number) => voi
   return null;
 };
 
-const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) => {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+const GLBViewer = memo(({ file, objectUrl: externalUrl, onReset, onReady, onProgress }: GLBViewerProps) => {
+  const [internalUrl, setInternalUrl] = useState<string | null>(null);
+  const objectUrl = externalUrl || internalUrl;
   const [isLoading, setIsLoading] = useState(true);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [wireframe, setWireframe] = useState(false);
@@ -238,15 +240,16 @@ const GLBViewer = memo(({ file, onReset, onReady, onProgress }: GLBViewerProps) 
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
 
-  useEffect(() => {
+useEffect(() => {
+    if (externalUrl) return; // Don't create internal URL if external one provided
     setIsLoading(true);
     const url = URL.createObjectURL(file);
-    setObjectUrl(url);
+    setInternalUrl(url);
     
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [file]);
+  }, [file, externalUrl]);
 
   useEffect(() => {
     if (containerRef.current) {

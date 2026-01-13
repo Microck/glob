@@ -1,45 +1,49 @@
 import { useState, useCallback, Suspense, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment, Center } from '@react-three/drei';
+import { OrbitControls, useGLTF, Environment, Center, useProgress } from '@react-three/drei';
 import PageLayout from '@/components/PageLayout';
+import LoadingIndicator from '@/components/LoadingIndicator';
 
-const SharedModel = ({ url, onError }: { url: string, onError: () => void }) => {
-  try {
-    const { scene } = useGLTF(url);
-    return <primitive object={scene} />;
-  } catch (e) {
-    onError();
-    return null;
-  }
+const SharedModel = ({ url }: { url: string }) => {
+  const { scene } = useGLTF(url);
+  return <primitive object={scene} />;
+};
+
+const ProgressTracker = ({ onError, onLoaded }: { onError: () => void, onLoaded: () => void }) => {
+  const { errors, progress, active } = useProgress();
+  
+  useEffect(() => {
+    if (errors.length > 0) {
+      onError();
+    }
+  }, [errors, onError]);
+
+  useEffect(() => {
+    if (!active && progress === 100 && errors.length === 0) {
+      onLoaded();
+    }
+  }, [active, progress, errors, onLoaded]);
+
+  return null;
 };
 
 const SharePage = () => {
   const { id } = useParams();
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const apiBase = import.meta.env.VITE_API_URL || '';
   const modelUrl = `${apiBase}/api/download/${id}`;
 
   const handleError = useCallback(() => {
     setError("EXPIRED OR NOT FOUND");
+    setIsLoading(false);
   }, []);
 
-  useEffect(() => {
-    let isActive = true;
-    fetch(modelUrl, { method: 'HEAD' })
-      .then(res => {
-        if (!isActive) return;
-        if (res.status === 404 || res.status === 410) {
-          setError("EXPIRED OR NOT FOUND");
-        }
-      })
-      .catch(() => undefined);
-
-    return () => {
-      isActive = false;
-    };
-  }, [modelUrl]);
+  const handleLoaded = useCallback(() => {
+    setIsLoading(false);
+  }, []);
 
   return (
     <PageLayout disableScroll>
@@ -47,10 +51,11 @@ const SharePage = () => {
         {!error && (
           <Canvas camera={{ position: [3, 3, 3], fov: 45 }}>
             <Suspense fallback={null}>
+              <ProgressTracker onError={handleError} onLoaded={handleLoaded} />
               <ambientLight intensity={0.7} />
               <directionalLight position={[10, 10, 5]} intensity={1.2} />
               <Center>
-                <SharedModel url={modelUrl} onError={handleError} />
+                <SharedModel url={modelUrl} />
               </Center>
               <OrbitControls enableDamping={false} />
               <Environment preset="warehouse" />
@@ -65,6 +70,12 @@ const SharePage = () => {
           <span className="font-mono text-[10px] text-reading">{id}</span>
         </div>
       </div>
+
+      {isLoading && !error && (
+        <div className="fixed inset-0 z-20 flex items-center justify-center bg-background/80">
+          <LoadingIndicator text="LOADING MODEL..." size="lg" />
+        </div>
+      )}
 
       {error && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-background/80">

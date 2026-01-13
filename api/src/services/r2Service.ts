@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, HeadObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -147,4 +147,37 @@ export async function checkObjectExists(key: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+export async function listMetadataKeys(prefix: string): Promise<string[]> {
+  const r2 = getR2();
+  if (!r2) {
+    const localPath = path.join(OPTIMIZED_DIR);
+    try {
+      const files = await fs.readdir(localPath);
+      return files.filter(f => f.endsWith('.json')).map(f => `${prefix}/${f}`);
+    } catch {
+      return [];
+    }
+  }
+
+  const keys: string[] = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const command = new ListObjectsV2Command({
+      Bucket: BUCKET_NAME,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    });
+    const response = await r2.send(command);
+    
+    if (response.Contents) {
+      keys.push(...response.Contents.map(obj => obj.Key!).filter(Boolean));
+    }
+    
+    continuationToken = response.NextContinuationToken;
+  } while (continuationToken);
+
+  return keys;
 }

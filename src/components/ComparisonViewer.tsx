@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useSafeAuth } from '@/hooks/use-safe-auth';
+
 interface ModelProps {
   url: string;
   wireframe?: boolean;
@@ -119,6 +121,7 @@ const ComparisonViewer = ({
   onSelectFile,
   onBackToResults
 }: ComparisonViewerProps) => {
+  const { userId } = useSafeAuth();
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [optimizedObjectUrl, setOptimizedObjectUrl] = useState<string | null>(null);
   const [sliderPosition, setSliderPosition] = useState(50);
@@ -136,14 +139,36 @@ const ComparisonViewer = ({
 
   const handleShare = async () => {
     if (!optimizedUrl) return;
+    if (!userId) {
+      toast({
+        title: "SIGN IN REQUIRED",
+        description: "Create an account to share your optimized models.",
+        variant: "destructive",
+      });
+      return;
+    }
     const id = optimizedUrl.split('/').pop();
     const shareUrl = `${window.location.origin}/share/${id}`;
     
     const apiBase = import.meta.env.VITE_API_URL || '';
     try {
-      await fetch(`${apiBase}/api/activate-share/${id}`, { method: 'POST' });
+      const res = await fetch(`${apiBase}/api/activate-share/${id}`, { method: 'POST' });
+      if (!res.ok) {
+        toast({
+          title: "SHARE FAILED",
+          description: "Could not activate share link. Try again.",
+          variant: "destructive",
+        });
+        return;
+      }
     } catch (e) {
       console.error(e);
+      toast({
+        title: "SHARE FAILED", 
+        description: "Network error. Try again.",
+        variant: "destructive",
+      });
+      return;
     }
 
     navigator.clipboard.writeText(shareUrl);
@@ -465,7 +490,7 @@ const ComparisonViewer = ({
 
             <button
               onClick={handleCenterModel}
-              className="ml-2 px-2 py-1 border-2 border-muted text-muted hover:border-active hover:text-active transition-none"
+              className="ml-auto px-2 py-1.5 border-2 border-muted text-muted hover:border-active hover:text-active transition-none flex items-center justify-center"
               title="Center Model"
             >
               <Crosshair className="w-4 h-4" />
@@ -489,8 +514,12 @@ const ComparisonViewer = ({
         </button>
         <button
           onClick={handleShare}
-          className="border-3 border-l-0 border-muted bg-surface text-reading font-ui px-6 py-5 hover:bg-active hover:text-surface hover:border-active flex items-center justify-center transition-none"
-          title="Share Link"
+          className={`border-3 border-l-0 border-muted bg-surface font-ui px-6 py-5 flex items-center justify-center transition-none ${
+            userId 
+              ? 'text-reading hover:bg-active hover:text-surface hover:border-active' 
+              : 'text-muted/50 cursor-not-allowed'
+          }`}
+          title={userId ? "Share Link" : "Sign in to share"}
         >
           <Share2 className="w-5 h-5" />
         </button>
