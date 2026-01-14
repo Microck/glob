@@ -11,6 +11,7 @@ interface PageLayoutProps {
   isCentered?: boolean;
   disableScroll?: boolean;
   fullWidth?: boolean;
+  showFloatingLinks?: boolean;
 }
 
 
@@ -19,7 +20,8 @@ const PageLayout = ({
   showContentOnly = false, 
   isCentered = true, 
   disableScroll = false,
-  fullWidth = false
+  fullWidth = false,
+  showFloatingLinks = true
 }: PageLayoutProps) => {
   const mainPadding = showContentOnly ? 'pt-8 pb-8' : 'pt-24 pb-32';
   const contentScale = showContentOnly ? 'scale-100' : 'scale-90';
@@ -58,7 +60,7 @@ const PageLayout = ({
         )}
       </main>
 
-      {!showContentOnly && <FloatingLinks />}
+      {!showContentOnly && showFloatingLinks && <FloatingLinks />}
     </div>
   );
 };
