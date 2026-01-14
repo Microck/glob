@@ -1,11 +1,12 @@
-import { useState, useEffect, Suspense, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, Center, useGLTF } from '@react-three/drei';
+import { OrbitControls, Environment } from '@react-three/drei';
 import { Download, AlertTriangle, Clock, ExternalLink } from 'lucide-react';
 import PageLayout from '@/components/PageLayout';
 import LoadingIndicator from '@/components/LoadingIndicator';
 import * as THREE from 'three';
+import { GLTFLoader, DRACOLoader } from 'three-stdlib';
 
 interface ShareMetadata {
   originalSize: number;
@@ -20,52 +21,9 @@ interface ShareMetadata {
   downloadFilename?: string;
 }
 
-interface ModelProps {
-  url: string;
-}
-
-const Model = ({ url }: ModelProps) => {
-  const { scene } = useGLTF(url);
-  
-  const clonedScene = useMemo(() => {
-    const s = scene.clone(true);
-    return s;
-  }, [scene]);
-  
-  useEffect(() => {
-    clonedScene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (child.material) {
-          if (Array.isArray(child.material)) {
-            child.material.forEach((mat) => {
-              mat.transparent = false;
-              mat.opacity = 1;
-              mat.side = THREE.FrontSide;
-            });
-          } else {
-            child.material.transparent = false;
-            child.material.opacity = 1;
-            child.material.side = THREE.FrontSide;
-          }
-        }
-        child.visible = true;
-        child.renderOrder = 0;
-      }
-    });
-
-    const box = new THREE.Box3().setFromObject(clonedScene);
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = (2 / maxDim) * 0.9;
-    clonedScene.scale.setScalar(scale);
-  }, [clonedScene]);
-
-  return <primitive object={clonedScene} />;
-};
-
 const SharePage = () => {
   const { id } = useParams();
-  const [modelUrl, setModelUrl] = useState<string | null>(null);
+  const [scene, setScene] = useState<THREE.Group | null>(null);
   const [metadata, setMetadata] = useState<ShareMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -103,22 +61,60 @@ const SharePage = () => {
         if (!active) return;
         setMetadata(meta);
         
-        setDebugInfo('Loading 3D model...');
+        setDebugInfo('Downloading model...');
         
-        const checkResponse = await fetch(downloadUrl, { method: 'HEAD' });
-        if (!checkResponse.ok) {
-          if (checkResponse.status === 410) {
+        const response = await fetch(downloadUrl);
+        if (!response.ok) {
+          if (response.status === 410) {
             throw new Error('This share link has expired');
           }
-          throw new Error('Model file not available');
+          throw new Error(`Server returned ${response.status}`);
         }
         
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
         if (!active) return;
         
-        setModelUrl(downloadUrl);
-        setDebugInfo('Rendering...');
-        setIsLoading(false);
+        setDebugInfo(`Downloaded ${Math.round(blob.size / 1024)}KB. Parsing...`);
+
+        const loader = new GLTFLoader();
+        const dracoLoader = new DRACOLoader();
         
+        dracoLoader.setDecoderPath('/draco/');
+        dracoLoader.setDecoderConfig({ type: 'js' });
+        loader.setDRACOLoader(dracoLoader);
+
+        loader.load(
+          objectUrl,
+          (gltf) => {
+            if (!active) return;
+            setDebugInfo('Processing scene...');
+            
+            const box = new THREE.Box3().setFromObject(gltf.scene);
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = maxDim > 0 ? (3 / maxDim) : 1;
+            gltf.scene.scale.setScalar(scale);
+            
+            const center = box.getCenter(new THREE.Vector3());
+            gltf.scene.position.sub(center.multiplyScalar(scale));
+
+            setScene(gltf.scene);
+            setIsLoading(false);
+            URL.revokeObjectURL(objectUrl);
+            dracoLoader.dispose();
+          },
+          undefined,
+          (err) => {
+            console.error('GLTFLoader error:', err);
+            if (!active) return;
+            setError(err instanceof Error ? err.message : 'Failed to parse 3D model');
+            setIsLoading(false);
+            URL.revokeObjectURL(objectUrl);
+            dracoLoader.dispose();
+          }
+        );
+
       } catch (err) {
         console.error('Load error:', err);
         if (!active) return;
@@ -169,15 +165,15 @@ const SharePage = () => {
     : null;
 
   return (
-    <PageLayout disableScroll>
+    <PageLayout disableScroll fullWidth>
       <div className="absolute inset-0 z-0 w-full h-full flex">
-        <div className="w-1/4 min-w-[320px] h-full bg-surface/95 border-r-3 border-muted p-8 flex flex-col gap-6 z-20 backdrop-blur-sm shadow-2xl relative pointer-events-auto overflow-y-auto">
+        <div className="w-1/4 min-w-[320px] max-w-[400px] h-full bg-surface/95 border-r-3 border-muted p-8 flex flex-col gap-6 z-20 backdrop-blur-sm shadow-2xl relative pointer-events-auto overflow-y-auto">
           <div>
             <Link to="/" className="inline-block mb-6">
               <img src="/glob.png" alt="glob" className="w-10 h-10" />
             </Link>
             <h1 className="font-ui text-xs text-muted uppercase tracking-widest mb-3">SHARED MODEL</h1>
-            <div className="font-mono text-xs text-reading bg-background border-2 border-muted p-4 w-full break-all leading-relaxed">
+            <div className="font-mono text-[10px] text-reading bg-background border-2 border-muted p-3 w-full break-all leading-relaxed">
               {id}
             </div>
           </div>
@@ -195,7 +191,7 @@ const SharePage = () => {
             <div className="space-y-4">
               <div className="bg-background border-2 border-muted p-4">
                 <span className="font-ui text-[10px] text-muted uppercase tracking-widest">Size Reduction</span>
-                <div className="font-display text-2xl text-active tracking-brutal mt-1">
+                <div className="font-display text-3xl text-active tracking-brutal mt-1">
                   -{reduction}%
                 </div>
                 <div className="flex gap-4 mt-2 text-xs font-mono">
@@ -261,19 +257,15 @@ const SharePage = () => {
           )}
         </div>
 
-        <div className="flex-1 h-full relative bg-background/50">
-          {!error && modelUrl && (
+        <div className="flex-1 h-full relative" style={{ background: 'hsl(273, 12%, 12%)' }}>
+          {!error && scene && (
             <Canvas camera={{ position: [4, 4, 4], fov: 45 }}>
-              <Suspense fallback={null}>
-                <ambientLight intensity={0.7} />
-                <directionalLight position={[10, 10, 5]} intensity={1.2} />
-                <pointLight position={[-10, -10, -10]} intensity={0.5} />
-                <Center>
-                  <Model url={modelUrl} />
-                </Center>
-                <OrbitControls enableDamping={false} autoRotate autoRotateSpeed={0.5} />
-                <Environment preset="warehouse" />
-              </Suspense>
+              <ambientLight intensity={0.7} />
+              <directionalLight position={[10, 10, 5]} intensity={1.2} />
+              <pointLight position={[-10, -10, -10]} intensity={0.5} />
+              <primitive object={scene} />
+              <OrbitControls enableDamping={false} autoRotate autoRotateSpeed={0.5} />
+              <Environment preset="warehouse" />
             </Canvas>
           )}
         </div>
