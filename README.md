@@ -62,6 +62,7 @@ glob is a logic engine for shrinking 3d assets. i built it because 50mb glb file
 
 - **mesh decimation:** removes polygons using `meshoptimizer`. drops weight without losing silhouette.
 - **draco compression:** google's geometry compression for minimal footprint.
+- **model sharing:** generate persistent share links with interactive 3D previews and stats.
 - **texture resizing:** auto-scale textures to 1k/2k/4k limits. saves vram.
 - **bulk processing:** queue 10 files. get them back optimized.
 - **globber tier:** $8/mo via polar. 500mb limits, 48h retention, persistent vault.
