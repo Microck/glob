@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/4a534b59-a047-42eb-b87e-8623f915d0d2" width="1000" alt="glob preview" />
+  <video src="https://github.com/user-attachments/assets/19ad4511-9b2d-4a19-9901-6f630ca55b99" alt="glob video" />
 </p>
 
 ---
