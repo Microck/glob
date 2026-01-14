@@ -98,8 +98,22 @@ const buildPreviewScene = (scene: THREE.Object3D, wireframe: boolean, clay: bool
     return new THREE.MeshStandardMaterial({
       color: baseColor,
       roughness: 1.0,
-      metalness: 0.0
+      metalness: 0.0,
+      envMapIntensity: 0.0
     });
+  };
+
+  const applyMatteMaterial = (material: THREE.Material) => {
+    if (material instanceof THREE.MeshStandardMaterial) {
+      const cloned = material.clone();
+      cloned.roughness = 1.0;
+      cloned.metalness = 0.0;
+      cloned.envMapIntensity = 0.0;
+      cloned.roughnessMap = null;
+      cloned.metalnessMap = null;
+      return cloned;
+    }
+    return createRoughMaterial(material);
   };
 
   clonedScene.traverse((child) => {
@@ -120,22 +134,9 @@ const buildPreviewScene = (scene: THREE.Object3D, wireframe: boolean, clay: bool
         });
       } else if (roughness) {
         if (Array.isArray(child.material)) {
-          child.material = child.material.map(material => {
-            if (material instanceof THREE.MeshStandardMaterial) {
-              const cloned = material.clone();
-              cloned.roughness = 1.0;
-              cloned.metalness = 0.0;
-              return cloned;
-            }
-            return createRoughMaterial(material);
-          });
-        } else if (child.material instanceof THREE.MeshStandardMaterial) {
-          const cloned = child.material.clone();
-          cloned.roughness = 1.0;
-          cloned.metalness = 0.0;
-          child.material = cloned;
+          child.material = child.material.map(material => applyMatteMaterial(material));
         } else if (child.material) {
-          child.material = createRoughMaterial(child.material);
+          child.material = applyMatteMaterial(child.material);
         }
       } else if (Array.isArray(child.material)) {
         child.material.forEach((mat) => {

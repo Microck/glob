@@ -169,6 +169,7 @@ const SharePage = () => {
       <div className="absolute inset-0 z-0 w-full h-full flex">
         <div className="w-1/4 min-w-[320px] max-w-[400px] h-full bg-surface/95 border-r-3 border-muted p-8 flex flex-col gap-6 z-20 backdrop-blur-sm shadow-2xl relative pointer-events-auto overflow-y-auto">
           <div>
+            <div className="h-10 mb-6" />
             <h1 className="font-ui text-xs text-muted uppercase tracking-widest mb-3">SHARED MODEL</h1>
             <div className="font-mono text-[10px] text-reading bg-background border-2 border-muted p-3 w-full break-all leading-relaxed">
               {id}
