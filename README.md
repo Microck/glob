@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="./public/glob.webm" width="1000" alt="glob preview" />
+  <img src="./public/glob.mp4" width="1000" alt="glob preview" />
 </p>
 
 ---
