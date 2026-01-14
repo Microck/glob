@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="./public/glob.mp4" width="1000" alt="glob preview" />
+  <img src="https://github.com/user-attachments/assets/4a534b59-a047-42eb-b87e-8623f915d0d2" width="1000" alt="glob preview" />
 </p>
 
 ---
