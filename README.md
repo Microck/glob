@@ -13,46 +13,9 @@
   <a href="https://polar.sh/"><img alt="polar" src="https://img.shields.io/badge/commerce-polar-white.svg" /></a>
 </p>
 
----
-
-### quickstart
-
-**clone and prep**
-
-```bash
-git clone https://github.com/microck/glob.git
-cd glob
-npm install
-```
-
-**env setup**
-
-copy `.env.example`. fill in the keys. you need supabase, clerk, polar, and r2.
-
-```bash
-# frontend
-VITE_CLERK_PUBLISHABLE_KEY=...
-VITE_SUPABASE_URL=...
-VITE_API_URL=http://localhost:3001
-
-# backend
-CLERK_SECRET_KEY=...
-R2_BUCKET_NAME=glob-models
-POLAR_ACCESS_TOKEN=...
-POLAR_SUCCESS_URL=http://localhost:5173/success?checkout_id={CHECKOUT_ID}
-```
-
-**run it**
-
-you need two terminals.
-
-```bash
-# terminal 1
-npm run api:dev
-
-# terminal 2
-npm run dev
-```
+<p align="center">
+  <img src="./public/glob.webm" width="1000" alt="glob preview" />
+</p>
 
 ---
 
