@@ -19,55 +19,6 @@
 
 ---
 
-### quickstart
-
-**clone and prep**
-
-```bash
-git clone https://github.com/microck/glob.git
-cd glob
-npm install
-```
-
-**env setup**
-
-copy `.env.example`. fill in the keys. you need supabase, clerk, polar, and r2.
-
-```bash
-# frontend (vite)
-VITE_CLERK_PUBLISHABLE_KEY=...
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_ANON_KEY=...
-VITE_API_URL=http://localhost:3001
-
-# backend (api)
-PORT=3001
-CORS_ORIGINS=http://localhost:5173
-CLERK_SECRET_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...
-R2_ACCOUNT_ID=...
-R2_ACCESS_KEY_ID=...
-R2_SECRET_ACCESS_KEY=...
-R2_BUCKET_NAME=glob-models
-POLAR_ACCESS_TOKEN=...
-POLAR_WEBHOOK_SECRET=...
-POLAR_SUCCESS_URL=http://localhost:5173/success?checkout_id={CHECKOUT_ID}
-```
-
-**run it**
-
-you need two terminals.
-
-```bash
-# terminal 1
-npm run api:dev
-
-# terminal 2
-npm run dev
-```
-
----
-
 ### features
 
 glob is a logic engine for shrinking 3d assets. i built it because 50mb glb files shouldn't exist on the web.
@@ -107,6 +58,23 @@ flowchart LR
 - **deploy:** vercel (frontend + `/api`)
 - **infra:** supabase (db), cloudflare r2 (model storage), clerk (auth), polar (billing)
 - **note:** `render.yaml` exists if you want a long-running api
+
+---
+
+### self-hosting
+
+you can run glob on your own infrastructure. it's a standard node/vite stack.
+
+1. **clone**: `git clone https://github.com/microck/glob.git`
+2. **deps**: `npm install`
+3. **env**: rename `.env.example` to `.env` and fill in the blanks.
+4. **run**: `npm run dev` and `npm run api:dev`
+
+you'll need accounts for:
+- **supabase**: database. run migrations in `api/supabase`.
+- **clerk**: auth. create an app and get keys.
+- **cloudflare r2**: object storage. create a bucket.
+- **polar**: payments. strictly optional if you strip the billing code.
 
 ---
 
