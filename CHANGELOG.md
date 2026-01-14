@@ -9,4 +9,4 @@
 - vite + react frontend with brutalist ui
 - bulk processing support (globber)
 - storage quota management
-- supabase integration for auth and data
+- supabase integration for db (profiles + history)

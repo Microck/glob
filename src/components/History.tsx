@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { Download, Box, Trash, Share2, Info, ArrowUpRight } from "lucide-react";
 import { deleteOptimization, getStorageUsage, getLocalHistory, deleteLocalHistoryItem } from "@/lib/api";
+import { useSafeAuth } from "@/hooks/use-safe-auth";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
@@ -19,6 +20,7 @@ interface Optimization {
 
 const History = ({ userId }: { userId?: string }) => {
   const { toast } = useToast();
+  const { getToken } = useSafeAuth();
   const [history, setHistory] = useState<Optimization[]>([]);
   const [storageUsage, setStorageUsage] = useState<{ used: number; total: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +29,14 @@ const History = ({ userId }: { userId?: string }) => {
     const fetchData = async () => {
       try {
         if (userId) {
+          const token = await getToken();
+          if (!token) return;
+
           const [historyRes, usageRes] = await Promise.all([
-            fetch(`${API_BASE}/api/history`, { headers: { 'x-member-id': userId } }),
-            getStorageUsage(userId).catch(() => null)
+            fetch(`${API_BASE}/api/history`, { 
+              headers: { 'Authorization': `Bearer ${token}` } 
+            }),
+            getStorageUsage(token).catch(() => null)
           ]);
 
           if (historyRes.ok) {
@@ -87,8 +94,9 @@ const History = ({ userId }: { userId?: string }) => {
     if (!confirm("PERMANENTLY DELETE?")) return;
     
     try {
-      if (userId && !id.startsWith('local-')) {
-        await deleteOptimization(id, userId);
+      const token = await getToken();
+      if (userId && token && !id.startsWith('local-')) {
+        await deleteOptimization(id, token);
       } else {
         deleteLocalHistoryItem(id);
       }

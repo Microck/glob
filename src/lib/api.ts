@@ -28,7 +28,7 @@ export type OptimizeResponse = {
 export async function optimizeFile(
   file: File, 
   settings: OptimizeSettings, 
-  memberId?: string,
+  token?: string,
   onProgress?: (percent: number) => void,
   onStatus?: (message: string) => void
 ): Promise<OptimizeResponse> {
@@ -59,7 +59,7 @@ export async function optimizeFile(
     const filename = file.name.replace(ext, '.glb'); 
     
     const urlResponse = await fetch(`${API_BASE}/api/get-upload-url?filename=${encodeURIComponent(filename)}`, {
-        headers: memberId ? { 'Authorization': `Bearer ${memberId}` } : {}
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     if (!urlResponse.ok) throw new Error('Failed to get upload URL');
     const { uploadUrl, key } = await urlResponse.json();
@@ -92,7 +92,7 @@ export async function optimizeFile(
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            ...(memberId ? { 'Authorization': `Bearer ${memberId}` } : {})
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
             storageKey: key,
@@ -151,11 +151,11 @@ export async function downloadFile(url: string, filename: string): Promise<void>
   }
 }
 
-export async function deleteOptimization(id: string, memberId: string): Promise<void> {
+export async function deleteOptimization(id: string, token: string): Promise<void> {
   const response = await fetch(`${API_BASE}/api/history/${id}`, {
     method: 'DELETE',
     headers: {
-      'Authorization': `Bearer ${memberId}`
+      'Authorization': `Bearer ${token}`
     }
   });
 
@@ -164,10 +164,10 @@ export async function deleteOptimization(id: string, memberId: string): Promise<
   }
 }
 
-export async function getStorageUsage(memberId: string): Promise<{ used: number; total: number }> {
+export async function getStorageUsage(token: string): Promise<{ used: number; total: number }> {
   const response = await fetch(`${API_BASE}/api/usage`, {
     headers: {
-      'Authorization': `Bearer ${memberId}`
+      'Authorization': `Bearer ${token}`
     }
   });
   

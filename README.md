@@ -4,7 +4,7 @@
   </a>
 </p>
 
-<p align="center">high-performance glb compressor for aggressive mesh decimation and geometry optimization.</p>
+<p align="center">glb/gltf optimizer. i got tired of spammy online compressors, so i built my own.</p>
 
 <p align="center">
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-O’Saasy-pink.svg" /></a>
@@ -16,6 +16,55 @@
 <p align="center">
   <video src="https://github.com/user-attachments/assets/19ad4511-9b2d-4a19-9901-6f630ca55b99" alt="glob video" />
 </p>
+
+---
+
+### quickstart
+
+**clone and prep**
+
+```bash
+git clone https://github.com/microck/glob.git
+cd glob
+npm install
+```
+
+**env setup**
+
+copy `.env.example`. fill in the keys. you need supabase, clerk, polar, and r2.
+
+```bash
+# frontend (vite)
+VITE_CLERK_PUBLISHABLE_KEY=...
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+VITE_API_URL=http://localhost:3001
+
+# backend (api)
+PORT=3001
+CORS_ORIGINS=http://localhost:5173
+CLERK_SECRET_KEY=...
+SUPABASE_SERVICE_ROLE_KEY=...
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET_NAME=glob-models
+POLAR_ACCESS_TOKEN=...
+POLAR_WEBHOOK_SECRET=...
+POLAR_SUCCESS_URL=http://localhost:5173/success?checkout_id={CHECKOUT_ID}
+```
+
+**run it**
+
+you need two terminals.
+
+```bash
+# terminal 1
+npm run api:dev
+
+# terminal 2
+npm run dev
+```
 
 ---
 
@@ -55,7 +104,9 @@ flowchart LR
 
 - **frontend:** react, vite, tailwind, shadcn, three.js
 - **backend:** express, node, gltf-transform
-- **infra:** cloudflare r2 (storage), supabase (auth/db), clerk (auth), polar (payments)
+- **deploy:** vercel (frontend + `/api`)
+- **infra:** supabase (db), cloudflare r2 (model storage), clerk (auth), polar (billing)
+- **note:** `render.yaml` exists if you want a long-running api
 
 ---
 

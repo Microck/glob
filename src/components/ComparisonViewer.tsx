@@ -211,14 +211,11 @@ const ComparisonViewer = ({
 
   useEffect(() => {
     if (optimizedUrl) {
-      const url = URL.createObjectURL(file);
-      setOptimizedObjectUrl(url);
-      
-      return () => {
-        URL.revokeObjectURL(url);
-      };
+      setOptimizedObjectUrl(optimizedUrl);
+    } else {
+      setOptimizedObjectUrl(null);
     }
-  }, [optimizedUrl, file]);
+  }, [optimizedUrl]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
